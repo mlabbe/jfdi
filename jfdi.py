@@ -49,6 +49,9 @@ def _parse_args():
     p.add_argument('--target-os', help='specify TARGET_OS for cross compiling')
     p.add_argument('--init', help="create new build.jfdi file in CWD",
                    action='store_true')
+    p.add_argument('--force', help='force rebuild -- new() always true',
+                   action='store_true')
+                   
     args = p.parse_args()
     _cfg['args'] = args
 
@@ -105,6 +108,9 @@ def _get_script():
 
     if script_path == None or not os.path.exists(script_path):
         _fatal_error("build file not found\n")
+
+    _cfg['script_path'] = script_path
+    _cfg['script_mtime'] = os.path.getmtime(script_path)
 
     with open(script_path) as f:
         script = f.read()
@@ -212,7 +218,7 @@ def _build(context):
     context[1]['end_build'](input_files)
 
 def _run_cmd(cmd):
-    _message(1, cmd)
+    _message(0, cmd)
     exit_code = subprocess.call(cmd, shell=True)
     if exit_code != 0:
         _fatal_error("error '%d' running command \"%s\"\n" %
@@ -328,7 +334,6 @@ if __name__ == '__main__':
 
 """)
     f.close()
-    sys.exit(0)
         
 #
 # api 
@@ -346,9 +351,9 @@ def _api_mkd(dirs):
 
 def _api_cmd(cmd):
     if cmd.__class__ == list:
-        _message(1, ' '.join(cmd))
+        _message(0, ' '.join(cmd))
     else:
-        _message(1, cmd)
+        _message(0, cmd)
         
     ret = subprocess.call(cmd, shell=True)
     if ret != 0:
@@ -481,9 +486,16 @@ def _api_var(key,type=str):
     return ''
 
 def _api_new(src, dst):
+    if _cfg['args'].force:
+        return True
+    
     if not os.path.exists(dst):
         return True
-    return os.path.getmtime(src) > os.path.getmtime(dst)
+
+    src_mtime = os.path.getmtime(src)
+    dst_mtime = os.path.getmtime(dst)    
+    
+    return src_mtime > dst_mtime
 
 def _api_exe(path, append_if_debug=None):
     split = os.path.splitext(path)
@@ -542,6 +554,7 @@ if __name__ == '__main__':
 
     if args.init:
         generate_tmpl('build.jfdi')
+        sys.exit(0)
     
     pycode = _get_script()
     context = _run_script(pycode)

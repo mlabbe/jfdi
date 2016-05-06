@@ -74,6 +74,10 @@ def build_this(in_path):
     # bin/hello.o
     obj_path = obj(in_path, "bin")
 
+    # skip if not out of date
+    if not new(in_path, obj_path):
+        return None
+
     # exp expands:
     #
     # $CC string into clang
