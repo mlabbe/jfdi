@@ -37,8 +37,9 @@ _cfg = {}
 
 def _parse_args():
     global cfg
-    
-    p = argparse.ArgumentParser()
+
+    desc = "JFDI Build System version %d.%d" % (VERSION[0], VERSION[1])
+    p = argparse.ArgumentParser(description=desc)
     p.add_argument('-v', '--verbose', help="increase verbosity",
                    action='store_true')
     p.add_argument('-f', '--file', help='read FILE as build.jfdi')
@@ -107,7 +108,12 @@ def _get_script():
         script_path = _cfg['args'].file
 
     if script_path == None or not os.path.exists(script_path):
-        _fatal_error("build file not found\n")
+        fatal_msg =  "Build file not found\n"
+        fatal_msg += "If starting from scratch, use %s --init\n" \
+                     % sys.argv[0]
+        fatal_msg += "%s --help for detailed help.\n\n" \
+                     % sys.argv[0]
+        _fatal_error(fatal_msg)
 
     _cfg['script_path'] = script_path
     _cfg['script_mtime'] = os.path.getmtime(script_path)
