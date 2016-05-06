@@ -79,6 +79,9 @@ def _message(verbosity, in_msg):
         return
     print(msg)
 
+def _warning(msg):
+    sys.stderr.write("warning: " + msg)
+
 def _fatal_error(msg):
     sys.stderr.write(msg)
     sys.stderr.write("exiting with error code 1\n")
@@ -246,7 +249,7 @@ available functions:
   die(str)      - fail build with a message, errorlevel 3
   env(str)      - return environment variable or None
   exe(str)      - return filename with exe extension based on TARGET_OS
-  exp(str)      - expand a $string, using all global vars
+  exp(str)      - expand a $string, searching CLI --vars and then global scope
   ext(str)      - return file extension (file.c = .c)
   log(str)      - print to stdout
   mkd(str)      - make all subdirs
@@ -414,6 +417,12 @@ def _api_arm(id):
         msg += "\tmsvc, clang\n"
         _fatal_error(msg)
 
+    if shutil.which(v['CC']) == None:
+        _warning("arm(): compiler '%s' not found in search path.\n" % v['CC'])
+
+    if shutil.which(v['LD']) == None:
+        _warning("arm(): linker '%s' not found in search path.\n" % v['LD'])
+
     g = globals()
     for var in v:
         g[var] = v[var]
@@ -527,11 +536,20 @@ def _api_exp(in_str):
                 continue
 
             var = var[1:]
-            if len(var) > 1 and var in globals():
-                val = globals()[var]
-                if val.__class__ == list:
-                    val = ' '.join(val)
-                out += val
+            if len(var) > 1:
+                val = None
+                # scan vars first (command line override)
+                if var in _cfg['vars']:
+                    val = _cfg['vars'][var]
+                elif var in globals():
+                    val = globals()[var]
+                else:
+                    _fatal_error("exp(): var %s not found." % var)
+                    
+            if val.__class__ == list:
+                val = ' '.join(val)
+
+            out += val
         else:
             out += c
                 
