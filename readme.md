@@ -57,17 +57,29 @@ See [examples](examples/) for more use cases.
 
 ### Versus Makefiles ###
 
-On Windows, GNU Make brings in a Unix runtime (via Cygwin, MSYS2, etc.) which can take up a gigabyte. Furthermore, it handles fork() poorly and whether it uses Unix paths is install-dependent.  The official GNU Make is over a decade old and does not work on modern Windows.
+On Windows, GNU Make brings in a Unix runtime (via Cygwin, MSYS2, etc.) which can take up a gigabyte. Furthermore, it handles fork() poorly and whether it uses Unix paths is install-dependent.  The official GNU Make binary is over a decade old and does not work on modern Windows.
 
 GNU Make is, arguably, overkill for smaller projects.
 
 ### Versus Batch Files ###
 
-Batch files only run on Windows.  They are fiddly to write and don't let you easily do things like subsitute one file extension for another.  (`in.c` builds `in.obj`, for instance).
+Batch files only run on Windows but JFDI runs on Linux, Mac and Windows.  They are fiddly to write and don't let you easily do things like subsitute one file extension for another.  (`in.c` builds `in.obj`, for instance).
+
+JFDI offers a compact build-specific API.  You will type significantly less to get the same thing built.
 
 ### Versus Bash scripts ###
 
 Bash scripts make you use Unix paths on Windows, whereas you often call programs that use Windows paths.  Mixed path scripting is gross.  Bash also depends on cp, rm, chmod, chown and a battery of Unix commands to be available.  Getting a compliant Unix environment up and running is asking a Windows user to install around a gigabyte of exes.
+
+JFDI offers a compact build-specific API.  You will type significantly less to get the same thing built.
+
+### Versus Visual Studio Project files ###
+
+SLN files integrate with Visual Studio which has a debugger, so you should use that if you value that closely knit integration.  However, setting up a project that links against other libraries and has include directories is tedious.  If you have multiple projects with similar configuration needs, JFDI lets you build them all without additional overhead.
+
+SLN files are mostly only forwards compatible.  JFDI lets people with earlier Visual Studio versions than you compile your code.
+
+SLN files will never build on Linux or Macos, but JFDI does.  See the [multi-compiler example](examples/multi_compiler/).
 
 ## Usage ##
 
