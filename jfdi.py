@@ -7,9 +7,9 @@ if sys.version_info[0] < 3:
 
 #
 # todo:
-#  - test on osx
+#  + test on osx
+#  - new() should always return false if vars change or if build.jfdi is new
 #  - build shader compiler
-#  - handle TARGET_OS
 # 
 
 import os
@@ -24,7 +24,7 @@ VERSION=(0,1)
 
 _cfg = {}
 
-def _parse_args():a
+def _parse_args():
     global cfg
     
     p = argparse.ArgumentParser()
@@ -66,7 +66,6 @@ def _parse_args():a
 def _message(verbosity, in_msg):
     global cfg
 
-    
     if in_msg.__class__ == list:
         msg = ' '.join(in_msg)
     else:
@@ -107,6 +106,13 @@ def _get_script():
         _fatal_error(msg)
     return pycode
 
+def _swap_slashes(dir):
+    if platform.system() == 'Darwin' or platform.system() == 'Linux':
+        return dir.replace('\\', '/')
+
+    if platform.system() == 'Windows':
+        return dir.replace('/', '\\')
+
 def _add_api(g):
     g['ext'] = _api_ext
     g['log'] = _api_log
@@ -123,6 +129,7 @@ def _add_api(g):
     g['new'] = _api_new
     g['exe'] = _api_exe
     g['exp'] = _api_exp
+    g['pth'] = _api_pth
     return g
 
 def _run_script(pycode):
@@ -154,15 +161,15 @@ def _build(context):
     globals()['TARGET_OS'] = platform.system()
     if _cfg['args'].target_os:
         globals()['TARGET_OS'] = _cfg['args'].target_os
-    
-    context[1]['start_build']()
-    
+        
     input_files = context[1]['list_input_files']()
     if _cfg['args'].clean:
         _message(1, "cleaning")
         context[1]['clean'](input_files)
         sys.exit(0)
 
+    context[1]['start_build']()
+        
     cmd_list = []
     for path in input_files:
         cmd = context[1]['build_this'](path)
@@ -178,6 +185,7 @@ def _build(context):
     context[1]['end_build'](input_files)
 
 def _run_cmd(cmd):
+    _message(1, cmd)
     exit_code = subprocess.call(cmd, shell=True)
     if exit_code != 0:
         _fatal_error("error '%d' running command \"%s\"\n" %
@@ -216,6 +224,7 @@ available functions:
   mkd(str)      - make all subdirs
   new(src,dst)  - true if file src is newer than file dst
   obj(str)      - return filename with obj file ext (file.c = file.obj)
+  pth(str)      - swap path slashes -- \ on windows, / otherwise
   var(str,type) - get command line var passed in with --var or -V
 
 variables:
@@ -304,6 +313,7 @@ def _api_log(msg):
     print("log:\t%s" % msg)
 
 def _api_mkd(dirs):
+    dirs = _swap_slashes(dirs)
     _message(1, "making dirs %s" % dirs)
     os.makedirs(dirs, exist_ok=True)
 
@@ -331,14 +341,18 @@ def _api_die(msg):
     sys.exit(3)
 
 def _api_rm(f):
+    if not os.path.exists(f):
+        _message(1, "rm nonexistent %s" % f)
+        return
+
+    f = _swap_slashes(f)
+    
     if os.path.isdir(f):
-        _message(0, "rmdir %s" % f)
-        if os.path.exists(f):
-            shutil.rmtree(f, ignore_errors=False)
+        _message(1, "rmdir %s" % f)
+        shutil.rmtree(f, ignore_errors=False)
     else:
-        _message(0, "rm %s" % f)
-        if os.path.exists(f):
-            os.remove(f)
+        _message(1, "rm %s" % f)
+        os.remove(f)
 
 def _api_env(e):
     if e not in os.environ:
@@ -353,6 +367,16 @@ def _api_arm(id):
         v['OBJ'] = 'obj'
         v['LD'] = 'link.exe'
         v['CCTYPE'] = 'msvc'
+        v['CFLAGS'] = []
+        v['CPPFLAGS'] = []
+        v['LDFLAGS'] = []
+        
+    if id == 'clang':
+        v['CC'] = 'clang'
+        v['CXX'] = 'clang++'
+        v['OBJ'] = 'o'
+        v['LD'] = 'clang'   # /usr/bin/ld is too low-level
+        v['CCTYPE'] = 'gcc' # clang is gcc-like
         v['CFLAGS'] = []
         v['CPPFLAGS'] = []
         v['LDFLAGS'] = []
@@ -388,6 +412,8 @@ def _api_obj(path):
     obj = ''
     if globals()['CCTYPE'] == 'msvc':
         obj = '.obj'
+    elif globals()['CCTYPE'] == 'gcc':
+        obj = '.o'
         
     return split[0] + obj
 
@@ -458,6 +484,8 @@ def _api_exp(in_str):
                 
     return out
 
+def _api_pth(path):
+    return _swap_slashes(path)
         
 #
 # main

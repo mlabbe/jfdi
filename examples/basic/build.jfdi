@@ -21,6 +21,7 @@ available functions:
   arm('?')      - arm environment with make-like variables (LD, CC, etc.)
   arg(str)      - convert a /flag into a -flag depending on compiler
   var(str,type) - get command line var passed in with --var or ''
+  pth(str)      - swap path slashes -- \ on windows, / otherwise
   new(src,dst)  - true if file src is newer than file dst
   cp(src, dst)  - copy a file or directory
   rm(str)       - remove file or directory
@@ -43,7 +44,7 @@ after arm(), variables, where applicable:
 
 JFDI_VERSION = 1
 
-cfg = {'i': ".\\intermediates\\"}
+cfg = {'i': pth(".\\intermediates\\")}
 
 
 
@@ -54,7 +55,11 @@ cfg = {'i': ".\\intermediates\\"}
 # called at the start of the build
 def start_build():
     global cfg
-    arm("msvc")
+    if HOST_OS == 'Windows':
+        arm("msvc")
+    elif HOST_OS == 'Darwin':
+        arm("clang")
+        
     mkd(cfg['i'])
 
 
@@ -65,17 +70,23 @@ def list_input_files():
 
 # return command to build single file in_path or None to skip
 def build_this(in_path):
-    #if not new(in_path, '%s/%s' % (cfg['i'], obj(in_path))):
-    #    return None
+    if not new(in_path, '%s/%s' % (cfg['i'], obj(in_path))):
+        return None
     
     if CCTYPE == 'msvc':
         CFLAGS.append('/Fo%s' % cfg['i'])
+    elif CCTYPE == 'gcc':
+        CFLAGS.append('-o ' + obj(cfg['i'] + in_path))
+        
+
+    if var('DEBUG', bool):
+        CFLAGS.append(arg('/O0'))
+        if CCTYPE == 'gcc':
+            CFLAGS.append(arg('-g'))
+    else:
+        CFLAGS.append(arg('/O3'))
         
     build = exp("$CC $CFLAGS ")
-    if var('DEBUG', bool):
-        build += arg('/O0 ')
-    else:
-        build += arg('/O3 ')
     build += arg('/c ' + in_path)
 
     return build
@@ -88,10 +99,13 @@ def end_build(in_files):
     
     if CCTYPE == 'msvc':
         LDFLAGS.append('/OUT:' + out_exe)
+    elif CCTYPE == 'gcc':
+        LDFLAGS.append('-o ' + out_exe)
 
     link = exp('$LD $LDFLAGS ')
     for file in in_files:
         link += cfg['i'] + obj(file) + ' '
+
 
     cmd(link)
 
@@ -128,7 +142,7 @@ if __name__ == '__main__':
         sys.exit(0)
 
     print("downloading jfdi.py")
-    url = "http://todo_url"
+    url = "https://raw.githubusercontent.com/mlabbe/jfdi/master/jfdi.py"
     urllib.request.urlretrieve(url, DST_FILENAME)
     
     print("%s downloaded." % DST_FILENAME)
