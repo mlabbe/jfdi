@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+# JFDI is
+# Copyright (C) 2016 Frogtoss Games, Inc.
+#
+# Author Michael Labbe
+# See LICENSE in this repo for license terms
+
 import sys
 if sys.version_info[0] < 3:
     sys.stderr.write('JFDI requires Python 3\n')
@@ -8,9 +14,9 @@ if sys.version_info[0] < 3:
 #
 # todo:
 #  + test on osx
-#  - obj second argument appends slash-proper path (making intermediates work)
-#  - provide sample build script for readme.md
-#  - clearer versioning, copyright
+#  + obj second argument appends slash-proper path (making intermediates work)
+#  + provide sample build script for readme.md
+#  + clearer versioning, copyright
 #  - see about self-installing
 #  - new() should always return false if vars change or if build.jfdi is new
 #  - build shader compiler

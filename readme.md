@@ -24,9 +24,10 @@ Plenty of build systems aim to scale to large codebases.  They contain knowledge
 
 This builds a multi-file C project with clang, putting build products in a `bin/` subdirectory.
 
-    jfdi.py --init  # generate template build file
+    jfdi.py --init  # generate template build file build.jfdi
 
 ```Python
+# build.jfdi
 
 def start_build():
     arm("clang")
@@ -49,6 +50,8 @@ def clean(in_files):
         rm(obj(file, "bin"))
     rm("bin")
 ```
+
+    jfdi.py      # builds build.jfdi
 
 See [examples](examples/) for more use cases.
 
@@ -73,6 +76,11 @@ Bash scripts make you use Unix paths on Windows, whereas you often call programs
     jfdi.py                  # run build.jfdi in cwd, building your program
 
 See also: `examples/`
+
+## Documentation ##
+
+API documentation is generated and included in every build script.
+Run `jfdi.py --init` to generate it.  Alternatively, read the code to `jfdi.py`'s _api_* functions.  It has a very shallow call graph with no dependencies and is easy to read.
 
 # Known Limitations #
 
