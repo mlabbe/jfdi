@@ -11,17 +11,6 @@ if sys.version_info[0] < 3:
     sys.stderr.write('JFDI requires Python 3\n')
     sys.exit(1)
 
-#
-# todo:
-#  + test on osx
-#  + obj second argument appends slash-proper path (making intermediates work)
-#  + provide sample build script for readme.md
-#  + clearer versioning, copyright
-#  - see about self-installing
-#  - new() should always return false if vars change or if build.jfdi is new
-#  - build shader compiler
-# 
-
 import os
 import sys
 import glob
