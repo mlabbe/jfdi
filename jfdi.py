@@ -427,7 +427,9 @@ def _api_arg(flag):
         
     return symbol + flag[i:]
 
-def _api_obj(path):
+def _api_obj(path, in_prefix_path=''):
+    prefix_path = _swap_slashes(in_prefix_path)
+    
     if path.__class__ == list:
         obj_str = ''
         for p in path:
@@ -436,7 +438,8 @@ def _api_obj(path):
                 obj = '.obj'
             elif globals()['CCTYPE'] == 'gcc':
                 obj = '.o'
-            obj_str += '%s%s ' % (split[0], obj)
+            file_str = '%s%s ' % (split[0], obj)
+            obj_str += os.path.join(prefix_path, file_str)
         return obj_str
 
     # str case
@@ -448,8 +451,8 @@ def _api_obj(path):
     elif globals()['CCTYPE'] == 'gcc':
         obj = '.o'
 
-
-    return split[0] + obj
+    file_str = split[0] + obj
+    return os.path.join(prefix_path, file_str)
     
     
 

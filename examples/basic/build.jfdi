@@ -49,10 +49,10 @@ JFDI_VERSION = 1
 # called at the start of the build
 def start_build():
     # this demonstration works with clang.  see multi_compiler
-    # example for one that builds with MSVC.
+    # example for one that builds with msvc, gcc or clang.
     arm("clang")
 
-    # make output directory
+    # make output directory or do nothing if it exists
     mkd("bin")
 
     # make debug build
@@ -67,14 +67,20 @@ def list_input_files():
 
 # return command to build single file in_path or None to skip
 def build_this(in_path):
-    
+
+    # obj takes a string filename and returns it with .o.
+    # "bin" is an optional prefix.
+    #    result:
+    # bin/hello.o
+    obj_path = obj(in_path, "bin")
+
     # exp expands:
     #
     # $CC string into clang
     # $CFLAGS list into space-separated compiler flags
     #   result:
-    # clang -O0 -g -c hello.c
-    return exp("$CC $CFLAGS -c " + in_path)
+    # clang -O0 -g -c hello.c -o bin/hello.o
+    return exp("$CC $CFLAGS -c " + in_path + " -o " + obj_path)
 
 # called after every input file has been built
 def end_build(in_files):
@@ -82,8 +88,8 @@ def end_build(in_files):
     # string of files with the same names, but .o extensions.
     #
     #   result:
-    # "hello.o main.o "
-    objs = obj(in_files)
+    # "bin/hello.o bin/main.o "
+    objs = obj(in_files, "bin")
 
     # cmd runs the linker
     cmd(exp("$LD $LDFLAGS " + objs + "-o bin/hello"))
@@ -97,7 +103,7 @@ def clean(in_files):
 
     # remove the obj file corresponding to each .c file
     for file in in_files:
-        rm(obj(file))
+        rm(obj(file, "bin"))
 
     # rm can recursively remove subdirectories
     rm("bin")
