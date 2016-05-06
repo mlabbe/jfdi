@@ -14,6 +14,7 @@ Plenty of build systems aim to scale to large codebases.  They contain knowledge
 
 ## Features ##
 
+- Tested and nurtured to life on Linux, Macos and Windows with GCC, Clang and MSVC support
 - One small Python file with no dependencies other than Python itself.
 - Self-propagating: run `build.jfdi` script directly (equivalent to makefiles) to download the jfdi build system.
 - Provides an API of conveniently named functions to do common things.

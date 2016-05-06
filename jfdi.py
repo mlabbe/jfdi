@@ -5,7 +5,6 @@
 #
 # Author Michael Labbe
 # See LICENSE in this repo for license terms
-
 import sys
 if sys.version_info[0] < 3:
     sys.stderr.write('JFDI requires Python 3\n')
@@ -269,7 +268,7 @@ after arm(), variables, where applicable:
   OBJ           - obj extension (ex: 'obj')
   CCTYPE        - compiler 
   CFLAGS        - list of c flags
-  CCFLAGS       - list of c++ flags
+  CXXFLAGS      - list of c++ flags
   LDFLAGS       - list of linker flags
   
 \"""
@@ -313,7 +312,7 @@ if __name__ == '__main__':
     print("Expected Usage: python jfdi.py -f %s" %
           sys.argv[0])
 
-    DST_FILENAME = 'dl_jfdi.py'
+    DST_FILENAME = 'jfdi.py'
     if os.path.exists(DST_FILENAME):
         sys.exit(0)
     print("Do you want to download the JFDI build script?")
@@ -328,6 +327,7 @@ if __name__ == '__main__':
     print("%s downloaded." % DST_FILENAME)
     print("Usage: python %s -f %s" %
           (DST_FILENAME, sys.argv[0]))
+    print("To permanently install jfdi, manually copy jfdi.py into your search path.")
     sys.exit(0)
 
 """)
@@ -378,10 +378,10 @@ def _api_rm(f):
     f = _swap_slashes(f)
     
     if os.path.isdir(f):
-        _message(1, "rmdir %s" % f)
+        _message(0, "rmdir %s" % f)
         shutil.rmtree(f, ignore_errors=False)
     else:
-        _message(1, "rm %s" % f)
+        _message(0, "rm %s" % f)
         os.remove(f)
 
 def _api_env(e):
@@ -398,7 +398,7 @@ def _api_arm(id):
         v['LD'] = 'link.exe'
         v['CCTYPE'] = 'msvc'
         v['CFLAGS'] = []
-        v['CPPFLAGS'] = []
+        v['CXXFLAGS'] = []
         v['LDFLAGS'] = []
         
     elif id == 'clang':
@@ -408,13 +408,24 @@ def _api_arm(id):
         v['LD'] = 'clang'   # /usr/bin/ld is too low-level
         v['CCTYPE'] = 'gcc' # clang is gcc-like
         v['CFLAGS'] = []
-        v['CPPFLAGS'] = []
+        v['CXXFLAGS'] = []
         v['LDFLAGS'] = []
+
+    elif id == 'gcc':
+        v['CC'] = 'gcc'
+        v['CXX'] = 'g++'
+        v['OBJ'] = 'o'
+        v['LD'] = 'gcc'     # /usr/bin/ld is too low-level
+        v['CCTYPE'] = 'gcc'
+        v['CFLAGS'] = []
+        v['CXXFLAGS'] = []
+        v['LDFLAGS'] = []
+        
 
     else:
         msg =  "arm() unknown ID '%s'\n" % (id)
         msg += "acceptable Ids:\n"
-        msg += "\tmsvc, clang\n"
+        msg += "\tmsvc, clang, gcc\n"
         _fatal_error(msg)
 
     if shutil.which(v['CC']) == None:
@@ -538,16 +549,22 @@ def _api_exp(in_str):
             var = var[1:]
             if len(var) > 1:
                 val = None
-                # scan vars first (command line override)
-                if var in _cfg['vars']:
+                
+                # scan calling function first
+                frame = sys._getframe(1)
+                if var in frame.f_locals:
+                    val = frame.f_locals[var]
+                # scan vars second (command line override)                
+                elif var in _cfg['vars']:
                     val = _cfg['vars'][var]
+                # fall back to global vars
                 elif var in globals():
                     val = globals()[var]
                 else:
-                    _fatal_error("exp(): var %s not found." % var)
+                    _fatal_error("exp(): var %s not found.\n" % var)
                     
             if val.__class__ == list:
-                val = ' '.join(val)
+                val = ' '.join(str(x) for x in val)
 
             out += val
         else:

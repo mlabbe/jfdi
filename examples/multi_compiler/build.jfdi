@@ -37,7 +37,7 @@ after arm(), variables, where applicable:
   OBJ           - obj extension (ex: 'obj')
   CCTYPE        - compiler 
   CFLAGS        - list of c flags
-  CCFLAGS       - list of c++ flags
+  CXXFLAGS      - list of c++ flags
   LDFLAGS       - list of linker flags
   
 """
@@ -59,8 +59,34 @@ def start_build():
         arm("msvc")
     elif HOST_OS == 'Darwin':
         arm("clang")
+    elif HOST_OS == 'Linux':
+        # Pass --var COMPILER=clang from the command line to build 
+        # with clang on Linux.
+        if var("COMPILER") == 'clang':
+            log("overriding gcc with clang")
+            arm("clang")
+        else:
+            arm("gcc")
         
     mkd(cfg['i'])
+
+    # initialize CFLAGS here instead of in build_this(), since
+    # build_this could be called many times and appending CFLAGS
+    # there would just repeatedly fill it up.
+    #
+    # We check if --var DEBUG=1 was passed in and use different
+    # compile flags.
+    if var('DEBUG', bool):
+        if CCTYPE == 'msvc':
+            CFLAGS.append('/Od')
+            CFLAGS.append('/Zi')
+        elif CCTYPE == 'gcc':
+            CFLAGS.append('-O0')
+            CFLAGS.append('-g')
+    else:
+        # MSVC accepts /O2 and gcc-likes accept -O2.
+        # arg() swaps the - for a /, accordingly.
+        CFLAGS.append(arg('-O2'))
 
 
 # return a list of files
@@ -70,51 +96,80 @@ def list_input_files():
 
 # return command to build single file in_path or None to skip
 def build_this(in_path):
-    if not new(in_path, '%s/%s' % (cfg['i'], obj(in_path))):
+
+    # obj_path is the path to the obj file, including the file name.
+    # if msvc, this will have an .obj extension, otherwise .o
+    #
+    # obj()'s optional second parameter is the directory the obj is in.
+    # Don't worry about dir slash direction -- this is automatically
+    # swapped by the host OS.
+    obj_path = obj(in_path, cfg['i'])
+    if not new(in_path, obj_path):
         return None
-    
+
+    # Because we are pushing all intermediate files to a subdirectory,
+    # we must tell the compiler where to put them.
+    #
+    # This is done differently on MSVC and gcc-likes, so we test
+    # the compiler type with CCTYPE.
+    #
+    # Note: clang has the CCTYPE "gcc" because it is gcc-like.
+    # This is done to reduce verbosity in testing.
+    # Of course you could still determine which compiler you're
+    # using by referencing CC or CXX.
     if CCTYPE == 'msvc':
-        CFLAGS.append('/Fo%s' % cfg['i'])
+        build_output = '/Fo' + cfg['i']
     elif CCTYPE == 'gcc':
-        CFLAGS.append('-o ' + obj(cfg['i'] + in_path))
-        
+        # Use the local obj_path variable specified above as the output file.
+        # (see exp_demo example if this seems strange)
+        build_output = exp("-o $obj_path")
 
-    if var('DEBUG', bool):
-        CFLAGS.append(arg('/O0'))
-        if CCTYPE == 'gcc':
-            CFLAGS.append(arg('-g'))
-    else:
-        CFLAGS.append(arg('/O3'))
-        
-    build = exp("$CC $CFLAGS ")
-    build += arg('/c ' + in_path)
+    # both compilers need the same compile flag to build, but with a different
+    # switch symbol.  arg() returns a string that is either /c or -c.
+    compile_flag = arg('-c')
 
-    return build
+    # return the final build string
+    return exp("$CC $build_output $CFLAGS $compile_flag $in_path")
 
-
-# called after every input file has been built
 def end_build(in_files):
-    """ in_files - a list of all input files """
-    out_exe = exe(cfg['i'] + 'hello.exe', '_d')
-    
+    # get the path to the output executable, stored in the intermediates directory.
+    # exe() removes the .exe extension if we are not on Windows.
+    # exe()'s second parameter allows us to affix a string to the name if
+    # the var DEBUG is set to true.
+    #
+    # In DEBUG=1 on windows, it will be hello_d.exe 
+    # In DEBUG=0 on windows, it will be hello.exe
+    # In DEBUG=1 on any other platform, it will be hello_d
+    # In DEBUG=0 on any other platform, it will be hell
+    out_exe_path = exe(cfg['i'] + 'hello.exe', '_d')
+
     if CCTYPE == 'msvc':
-        LDFLAGS.append('/OUT:' + out_exe)
-    elif CCTYPE == 'gcc':
-        LDFLAGS.append('-o ' + out_exe)
+        build_output = '/OUT:' + out_exe_path
+    else:
+        build_output = '-o ' + out_exe_path
 
-    link = exp('$LD $LDFLAGS ')
-    for file in in_files:
-        link += cfg['i'] + obj(file) + ' '
+    # if obj()'s first parameter is a list, it returns a space-separated 
+    # string containing all of the input files. 
+    # 
+    # obj()'s second parameter adds a directory to each of the obj files.
+    #
+    # This returns intermediates/hello.o, or intermediates/hello.obj on Windows
+    obj_files = obj(in_files, cfg['i'])
 
-
-    cmd(link)
-
-    cp(out_exe, '.')
+    # run a shell command to link the binary
+    cmd(exp("$LD $build_output $obj_files"))
+    
+    # copy the executable from intermediates to the current working directory
+    cp(out_exe_path, '.')
 
 
 # called when the user requests --clean
 def clean(in_files):
+    # recursively remove the intermediates directory
     rm(cfg['i'])
+
+    # remove the executable that was built in the current configuration from
+    # the current working directory.
     rm(exe('hello.exe', '_d'))
 
 
@@ -133,7 +188,7 @@ if __name__ == '__main__':
     print("Expected Usage: python jfdi.py -f %s" %
           sys.argv[0])
 
-    DST_FILENAME = 'dl_jfdi.py'
+    DST_FILENAME = 'fdi.py'
     if os.path.exists(DST_FILENAME):
         sys.exit(0)
     print("Do you want to download the JFDI build script?")
