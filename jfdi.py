@@ -24,7 +24,7 @@ VERSION=(0,1)
 
 _cfg = {}
 
-def _parse_args():
+def _parse_args():a
     global cfg
     
     p = argparse.ArgumentParser()
@@ -282,7 +282,7 @@ if __name__ == '__main__':
         sys.exit(0)
 
     print("downloading jfdi.py")
-    url = "http://todo_url"
+    url = "https://raw.githubusercontent.com/mlabbe/jfdi/master/jfdi.py"
     urllib.request.urlretrieve(url, DST_FILENAME)
     
     print("%s downloaded." % DST_FILENAME)

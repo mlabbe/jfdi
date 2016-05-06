@@ -16,21 +16,23 @@ Plenty of build systems aim to scale to large codebases.  They contain knowledge
 
 - One small Python file with no dependencies other than Python itself.
 - Self-propagating: run `build.jfdi` script directly (equivalent to makefiles) to download the jfdi build system.
-- Provides an API of very tersely named functions to do common things.
-- Generate a self-documented build template to get started with `--init`
-- Portable build scripts 
+- Provides an API of conveniently named functions to do common things.
+- Generate a self-documented build template to get started with `--init`.
+- Portable build scripts that work anywhere Python runs.
 
 ### Versus Makefiles ###
 
-JFDI builds avoid using GNU Makefiles.  On Windows, GNU Make brings in a Unix runtime (via Cygwin, MSYS2, etc.) which can take up a gigabyte. Furthermore, it handles fork() poorly and whether it uses Unix paths is install-dependent.
+On Windows, GNU Make brings in a Unix runtime (via Cygwin, MSYS2, etc.) which can take up a gigabyte. Furthermore, it handles fork() poorly and whether it uses Unix paths is install-dependent.  The official GNU Make is over a decade old and does not work on modern Windows.
+
+GNU Make is, arguably, overkill for smaller projects.
 
 ### Versus Batch Files ###
 
-Batch files only run on Windows.  They are fiddly to write and don't let you easily do things like subsitute one file extension for another.  (`in.c` builds 'in.obj' for instance).
+Batch files only run on Windows.  They are fiddly to write and don't let you easily do things like subsitute one file extension for another.  (`in.c` builds `in.obj`, for instance).
 
 ### Versus Bash scripts ###
 
-Bash scripts make you use Unix paths on Windows, whereas you often call programs that use Windows paths.  Mixed path scripting is gross.  Bash also depends on cp, rm, chmod, chown and a battery of Unix commands to be available.  Getting a compliant Unix environment up and running is a big ask for the Windows users of a small program.
+Bash scripts make you use Unix paths on Windows, whereas you often call programs that use Windows paths.  Mixed path scripting is gross.  Bash also depends on cp, rm, chmod, chown and a battery of Unix commands to be available.  Getting a compliant Unix environment up and running is asking a Windows user to install around a gigabyte of exes.
 
 ## Usage ##
 
