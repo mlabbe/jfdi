@@ -20,6 +20,38 @@ Plenty of build systems aim to scale to large codebases.  They contain knowledge
 - Generate a self-documented build template to get started with `--init`.
 - Portable build scripts that work anywhere Python runs.
 
+## Example Usage ##
+
+This builds a multi-file C project with clang, putting build products in a `bin/` subdirectory.
+
+    jfdi.py --init  # generate template build file
+
+```Python
+
+def start_build():
+    arm("clang")
+    mkd("bin")
+    
+def list_input_files():
+    return ['hello.c', 'main.c']
+
+def build_this(in_path):
+    obj_path = obj(in_path, "bin")
+    return exp("$CC $CFLAGS -c " + in_path + " -o " + obj_path)
+
+def end_build(in_files):
+    objs = obj(in_files, "bin")
+    cmd(exp("$LD $LDFLAGS " + objs + "-o bin/hello"))
+
+def clean(in_files):
+    arm("clang")
+    for file in in_files:
+        rm(obj(file, "bin"))
+    rm("bin")
+```
+
+See [examples](examples/) for more use cases.
+
 ### Versus Makefiles ###
 
 On Windows, GNU Make brings in a Unix runtime (via Cygwin, MSYS2, etc.) which can take up a gigabyte. Furthermore, it handles fork() poorly and whether it uses Unix paths is install-dependent.  The official GNU Make is over a decade old and does not work on modern Windows.
@@ -48,9 +80,9 @@ This software is in beta and hasn't been thoroughly tested yet.  This message wi
 
 # Copyright and Credit #
 
-Copyright &copy; 2016 Frogtoss Games, Inc.  File LICENSE covers all files in this repo.
+Copyright &copy; 2016 Frogtoss Games, Inc.  File [LICENSE](LICENSE) covers all files in this repo.
 
-JFDI by Michael Labbe.
+JFDI by Michael Labbe. <mike@frogtoss.com>
 
 ## Support ##
 
