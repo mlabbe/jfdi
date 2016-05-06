@@ -19,6 +19,7 @@ Plenty of build systems aim to scale to large codebases.  They contain knowledge
 - Provides an API of conveniently named functions to do common things.
 - Generate a self-documented build template to get started with `--init`.
 - Portable build scripts that work anywhere Python runs.
+- Automatically swaps dir slashes for easy x-platform scripting.
 
 ## Sample Script ##
 

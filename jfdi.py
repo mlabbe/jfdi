@@ -398,7 +398,7 @@ def _api_arm(id):
         v['CPPFLAGS'] = []
         v['LDFLAGS'] = []
         
-    if id == 'clang':
+    elif id == 'clang':
         v['CC'] = 'clang'
         v['CXX'] = 'clang++'
         v['OBJ'] = 'o'
@@ -409,9 +409,9 @@ def _api_arm(id):
         v['LDFLAGS'] = []
 
     else:
-        msg =  "arm() unknown ID\n"
+        msg =  "arm() unknown ID '%s'\n" % (id)
         msg += "acceptable Ids:\n"
-        msg += "\tmsvc\n"
+        msg += "\tmsvc, clang\n"
         _fatal_error(msg)
 
     g = globals()
