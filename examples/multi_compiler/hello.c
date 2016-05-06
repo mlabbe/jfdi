@@ -1,6 +1,8 @@
 #include <stdio.h>
 
-void say_hello(void)
+int main(void)
 {
     puts("hello, world!");
+    
+    return 0;
 }

@@ -5,28 +5,26 @@
 # /\__/ / |   | |/ / _| |_ 
 # \____/\_|   |___/  \___/ 
 #
-# NOTE:
-# if you do not have jfdi.py, run this script with python to get it.
 """
 jfdi build script
 
 available functions:
-  cp(src, dst)  - copy a file or directory
-  rm(str)       - remove file or directory
-  arg(str)      - convert a /flag into a -flag depending on compiler
-  arm('?')      - arm environment with make-like variables (LD, CC, etc.)
+  log(str)      - print to stdout
   cmd(list|str) - run a command on a shell, fatal if error
   die(str)      - fail build with a message, errorlevel 3
   env(str)      - return environment variable or None
-  exe(str)      - return filename with exe extension based on TARGET_OS
-  exp(str)      - expand a $string, using all global vars
-  ext(str)      - return file extension (file.c = .c)
-  log(str)      - print to stdout
-  mkd(str)      - make all subdirs
-  new(src,dst)  - true if file src is newer than file dst
   obj(str)      - return filename with obj file ext (file.c = file.obj)
+  exe(str)      - return filename with exe extension based on TARGET_OS
+  ext(str)      - return file extension (file.c = .c)
+  exp(str)      - expand a $string, using all global vars
+  mkd(str)      - make all subdirs
+  arm('?')      - arm environment with make-like variables (LD, CC, etc.)
+  arg(str)      - convert a /flag into a -flag depending on compiler
+  var(str,type) - get command line var passed in with --var or ''
   pth(str)      - swap path slashes -- \ on windows, / otherwise
-  var(str,type) - get command line var passed in with --var or -V
+  new(src,dst)  - true if file src is newer than file dst
+  cp(src, dst)  - copy a file or directory
+  rm(str)       - remove file or directory
 
 variables:
   HOST_OS       - compiling machine OS    (str)
@@ -46,65 +44,81 @@ after arm(), variables, where applicable:
 
 JFDI_VERSION = 1
 
+cfg = {'i': pth(".\\intermediates\\")}
+
+
+
+
+
+
+
 # called at the start of the build
 def start_build():
-    # this demonstration works with clang.  see multi_compiler
-    # example for one that builds with MSVC.
-    arm("clang")
+    global cfg
+    if HOST_OS == 'Windows':
+        arm("msvc")
+    elif HOST_OS == 'Darwin':
+        arm("clang")
+        
+    mkd(cfg['i'])
 
-    # make output directory
-    mkd("bin")
-
-    # make debug build
-    CFLAGS.extend(['-O0', '-g'])
-    
 
 # return a list of files
 def list_input_files():
-    # this function can return a string with one file, a list of
-    # files, or a shell wildcard.
-    return ['hello.c', 'main.c']
+    return ['hello.c']
+
 
 # return command to build single file in_path or None to skip
 def build_this(in_path):
+    if not new(in_path, '%s/%s' % (cfg['i'], obj(in_path))):
+        return None
     
-    # exp expands:
-    #
-    # $CC string into clang
-    # $CFLAGS list into space-separated compiler flags
-    #   result:
-    # clang -O0 -g -c hello.c
-    return exp("$CC $CFLAGS -c " + in_path)
+    if CCTYPE == 'msvc':
+        CFLAGS.append('/Fo%s' % cfg['i'])
+    elif CCTYPE == 'gcc':
+        CFLAGS.append('-o ' + obj(cfg['i'] + in_path))
+        
+
+    if var('DEBUG', bool):
+        CFLAGS.append(arg('/O0'))
+        if CCTYPE == 'gcc':
+            CFLAGS.append(arg('-g'))
+    else:
+        CFLAGS.append(arg('/O3'))
+        
+    build = exp("$CC $CFLAGS ")
+    build += arg('/c ' + in_path)
+
+    return build
+
 
 # called after every input file has been built
 def end_build(in_files):
-    # convert a list of source files into a space-separated
-    # string of files with the same names, but .o extensions.
-    #
-    #   result:
-    # "hello.o main.o "
-    objs = obj(in_files)
-
-    # cmd runs the linker
-    cmd(exp("$LD $LDFLAGS " + objs + "-o bin/hello"))
+    """ in_files - a list of all input files """
+    out_exe = exe(cfg['i'] + 'hello.exe', '_d')
     
+    if CCTYPE == 'msvc':
+        LDFLAGS.append('/OUT:' + out_exe)
+    elif CCTYPE == 'gcc':
+        LDFLAGS.append('-o ' + out_exe)
+
+    link = exp('$LD $LDFLAGS ')
+    for file in in_files:
+        link += cfg['i'] + obj(file) + ' '
+
+
+    cmd(link)
+
+    cp(out_exe, '.')
+
 
 # called when the user requests --clean
 def clean(in_files):
-    # arm the build environment for the clang compiler
-    # (this makes obj() understand the obj extension is .o)
-    arm("clang")
-
-    # remove the obj file corresponding to each .c file
-    for file in in_files:
-        rm(obj(file))
-
-    # rm can recursively remove subdirectories
-    rm("bin")
-    
+    rm(cfg['i'])
+    rm(exe('hello.exe', '_d'))
 
 
-    
+
 #
 # main -- installs build system if build script is run directly
 #
@@ -135,4 +149,3 @@ if __name__ == '__main__':
     print("Usage: python %s -f %s" %
           (DST_FILENAME, sys.argv[0]))
     sys.exit(0)
-

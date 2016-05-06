@@ -8,7 +8,9 @@ if sys.version_info[0] < 3:
 #
 # todo:
 #  + test on osx
+#  - obj second argument appends slash-proper path (making intermediates work)
 #  - provide sample build script for readme.md
+#  - clearer versioning, copyright
 #  - see about self-installing
 #  - new() should always return false if vars change or if build.jfdi is new
 #  - build shader compiler
@@ -426,6 +428,18 @@ def _api_arg(flag):
     return symbol + flag[i:]
 
 def _api_obj(path):
+    if path.__class__ == list:
+        obj_str = ''
+        for p in path:
+            split = os.path.splitext(p)
+            if globals()['CCTYPE'] == 'msvc':
+                obj = '.obj'
+            elif globals()['CCTYPE'] == 'gcc':
+                obj = '.o'
+            obj_str += '%s%s ' % (split[0], obj)
+        return obj_str
+
+    # str case
     split = os.path.splitext(path)
     
     obj = ''
@@ -433,8 +447,11 @@ def _api_obj(path):
         obj = '.obj'
     elif globals()['CCTYPE'] == 'gcc':
         obj = '.o'
-        
+
+
     return split[0] + obj
+    
+    
 
 def _api_var(key,type=str):
     global _cfg
@@ -473,6 +490,7 @@ def _api_exe(path, append_if_debug=None):
     return base_str + exe
 
 def _api_exp(in_str):
+    _message(1, "expanding \"%s\"" % in_str)
     out = ''
 
     reading_var = False
