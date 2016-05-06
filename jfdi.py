@@ -2,18 +2,21 @@
 
 import sys
 if sys.version_info[0] < 3:
-    sys.stderr.write('JFDI requires Python 3')
+    sys.stderr.write('JFDI requires Python 3\n')
     sys.exit(1)
 
 #
 # todo:
 #  + test on osx
+#  - provide sample build script for readme.md
+#  - see about self-installing
 #  - new() should always return false if vars change or if build.jfdi is new
 #  - build shader compiler
 # 
 
 import os
 import sys
+import glob
 import shutil
 import os.path
 import argparse
@@ -155,6 +158,20 @@ def _run_script(pycode):
     context = [globals(), locals]
     return context
 
+def _handle_str_input_files(input_files):
+    out_files = []
+    if '*' in input_files:
+        wildcard = glob.glob(input_files)
+        for path in wildcard:
+            if os.path.isfile(path):
+                out_files.append(path)
+    else:
+        out_files.append(input_files)
+
+    return out_files
+    
+
+
 def _build(context):
     global _cfg
     globals()['HOST_OS'] = platform.system()
@@ -163,6 +180,8 @@ def _build(context):
         globals()['TARGET_OS'] = _cfg['args'].target_os
         
     input_files = context[1]['list_input_files']()
+    if input_files.__class__ == str:
+        input_files = _handle_str_input_files(input_files)
     if _cfg['args'].clean:
         _message(1, "cleaning")
         context[1]['clean'](input_files)
