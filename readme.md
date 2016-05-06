@@ -81,6 +81,16 @@ SLN files are mostly only forwards compatible.  JFDI lets people with earlier Vi
 
 SLN files will never build on Linux or Macos, but JFDI does.  See the [multi-compiler example](examples/multi_compiler/).
 
+### Versus SCons ###
+
+[SCons](http://scons.org) is a fully featured Python-based software construction tool.  It must be installed in your operating system and forces you to keep the older Python 2 around (whereas JFDI is based on Python 3).  Unlike JFDI, it has deep knowledge about various compilers and imposes conventions through its environment model.
+
+This is a blessing and a curse: if SCons knows about your build environment, you are in luck and can build quickly.  If it does not, adding support for it is involved and poorly documented.  In contrast, JFDI barely knows anything about your toolchain, expecting you to expressly support it using a very simple API.
+
+SCons is not widely installed. Therefore, if you distribute your software, you are asking all of your users to install it and an outdated version of Python on their machines just to build your small program.  JFDI is also not widely installed, but it self propagates and does not need to be installed at the operating system level.  A user simply needs to run the `build.jfdi` script directly to retrieve the latest version.
+
+SCons is a good candidate to upgrade to if your project becomes too large for JFDI.  The author uses it to build production code for a 200 file codebase.
+
 ## Usage ##
 
     jfdi.py --init           # create build.jfdi in cwd
