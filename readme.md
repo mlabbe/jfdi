@@ -6,11 +6,11 @@
      \____/\_|   |___/  \___/ 
 
 
-The build system for people who tolerate batch files and shell scripts for small projects.
+The build system for people who tolerate batch files and shell scripts for smaller projects.
 
 ## Rationale ##
 
-Plenty of build systems aim to scale to large codebases.  They contain knowledge about your environment and aim to automate common tasks.  JDFI is bare Python scripting with helpers and hooks -- designed to let you define your own build logic so you can just get the thing built.
+Plenty of build systems aim to scale to large codebases.  They contain knowledge about your environment and aim to automate common tasks.  JFDI scales to the lowend.  It is bare Python scripting with helpers and hooks -- designed to let you define your own build logic so you can just get the thing built.
 
 ## Features ##
 
