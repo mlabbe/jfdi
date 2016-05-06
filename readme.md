@@ -10,7 +10,7 @@ The build system for people who tolerate batch files and shell scripts for small
 
 ## Rationale ##
 
-Plenty of build systems aim to scale to large codebases.  They contain knowledge about your environment and aim to automate common tasks.  JFDI scales to the lowend.  It is bare Python scripting with helpers and hooks -- designed to let you define your own build logic so you can just get the thing built.
+Plenty of build systems aim to scale to large codebases.  They contain knowledge about your environment and aim to automate common tasks.  JFDI scales to the lowend.  It is scripting with helpers and hooks -- designed to let you define your own build logic so you can just get the thing built.  JFDI.
 
 ## Features ##
 
@@ -40,16 +40,14 @@ def list_input_files():
 
 def build_this(in_path):
     obj_path = obj(in_path, "bin")
-    return exp("$CC $CFLAGS -c " + in_path + " -o " + obj_path)
+    return exp("$CC $CFLAGS -c $in_path -o $obj_path)
 
 def end_build(in_files):
     objs = obj(in_files, "bin")
-    cmd(exp("$LD $LDFLAGS " + objs + "-o bin/hello"))
+    cmd(exp("$LD $LDFLAGS $objs -o bin/hello"))
 
 def clean(in_files):
     arm("clang")
-    for file in in_files:
-        rm(obj(file, "bin"))
     rm("bin")
 ```
 

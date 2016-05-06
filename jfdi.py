@@ -5,6 +5,10 @@
 #
 # Author Michael Labbe
 # See LICENSE in this repo for license terms
+#
+# latest version, examples and documentation:
+# https://github.com/mlabbe/jfdi.git
+
 import sys
 if sys.version_info[0] < 3:
     sys.stderr.write('JFDI requires Python 3\n')
