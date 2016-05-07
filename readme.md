@@ -47,7 +47,6 @@ def end_build(in_files):
     cmd(exp("$LD $LDFLAGS $objs -o bin/hello"))
 
 def clean(in_files):
-    arm("clang")
     rm("bin")
 ```
 
