@@ -1,0 +1,291 @@
+#    _______________ _____ 
+#   |_  |  ___|  _  \_   _|
+#     | | |_  | | | | | |  
+#     | |  _| | | | | | |  
+# /\__/ / |   | |/ / _| |_ 
+# \____/\_|   |___/  \___/ 
+#
+# NOTE:
+# if you do not have jfdi.py, run this script with python to get it.
+"""
+jfdi build script
+
+available functions:
+  cp(src, dst)  - copy a file or directory
+  rm(str)       - remove file or directory
+  arg(str)      - convert a /flag into a -flag depending on compiler
+  arm('?')      - arm environment with make-like variables (LD, CC, etc.)
+  cmd(list|str) - run a command on a shell, fatal if error
+  die(str)      - fail build with a message, errorlevel 3
+  env(str)      - return environment variable or None
+  exe(str)      - return filename with exe extension based on TARGET_OS
+  exp(str)      - expand a $string, searching CLI --vars and then global scope
+  ext(str)      - return file extension (file.c = .c)
+  log(str)      - print to stdout
+  mkd(str)      - make all subdirs
+  new(src,dst)  - true if file src is newer than file dst
+  obj(str)      - return filename with obj file ext (file.c = file.obj)
+  pth(str)      - swap path slashes -- \ on windows, / otherwise
+  var(str,type) - get command line var passed in with --var or -V
+
+variables:
+  HOST_OS       - compiling machine OS    (str)
+  TARGET_OS     - target machine OS       (str)
+
+after arm(), variables, where applicable:
+  CC            - c compiler
+  CXX           - c++ compiler
+  LD            - linker
+  OBJ           - obj extension (ex: 'obj')
+  CCTYPE        - compiler 
+  CFLAGS        - list of c flags
+  CXXFLAGS      - list of c++ flags
+  LDFLAGS       - list of linker flags
+  
+"""
+import os.path
+
+JFDI_VERSION = 1
+
+#
+# This script differes from the bgfx shader.mk makefile in a number of ways.
+#
+# 1. You can build multiple targets with a single instantiation.
+#    Use comma separated TARGET values, ex: --var TARGET=0,1,3
+#
+# 2. Intermediates are put in a subdirectory to avoid clobbering.
+#
+# 3. Shader bins are only copied to the output dir after *all shaders compile*.
+#    This has the benefit of not mismatching your compiled vs and fs.
+#
+# 4. varying.def.sc's include path is expressly named.
+
+TARGETS = [{'name': 'dx9', #0
+            'desc': 'hlsl - dx9',
+            'vs_flags': '--platform windows -p vs_3_0 -O 3',
+            'fs_flags': '--platform windows -p ps_3_0 -O 3',
+            'cs_flags': None,
+            'path': 'shaders/dx9'},
+
+           {'name': 'dx11', #1
+            'desc': 'hlsl - dx11',
+            'vs_flags': '--platform windows -p vs_4_0 -O 3',
+            'fs_flags': '--platform windows -p ps_4_0 -O 3',
+            'cs_flags': '--platform windows -p cs_5_0 -O 1',
+            'path': 'shaders/dx11'},
+
+           {'name': 'nacl', #2
+            'desc': 'glsl - nacl',
+            'vs_flags': '--platform nacl',
+            'fs_flags': '--platform nacl',
+            'cs_flags': None,
+            'path': 'shaders/gles'},
+
+           {'name': 'android', #3
+            'desc': 'glsl - android',
+            'vs_flags': '--platform android',
+            'fs_flags': '--platform android',
+            'cs_flags': '--platform android',
+            'path': 'shaders/gles'},
+
+           {'name': 'linux', #4
+            'desc': 'glsl - linux',
+            'vs_flags': '--platform linux -p 120',
+            'fs_flags': '--platform linux -p 120',
+            'cs_flags': '--platform linux -p 430',
+            'path': 'shaders/glsl'},
+
+           {'name': 'metal', #5
+            'desc': 'metal - OSX/iOS',
+            'vs_flags': '--platform osx -p metal',
+            'fs_flags': '--platform osx -p metal',
+            'cs_flags': '--platform osx -p metal',
+            'path': 'shaders/metal'}]
+
+CFG = {\
+       # intermediates dir
+       'i': '.bin.d',
+       # search path to shader compiler
+       'shaderc': ['shaderc.exe'],
+       # include paths
+       'include_path': ['.', 'include'],
+       # path to varying.def.sc (not a search path)
+       'varying_path': 'include/varying.def.sc',
+       }
+
+#
+# Begin build logic
+#
+
+def get_shaderc():
+    for path in CFG['shaderc']:
+        if os.path.exists(exe(path)):
+            return path
+
+    die("could not find %s.  Check search path in build.jfdi" % exe('shaderc'))
+
+def get_intermediate_dir(shader_type):
+    return os.path.join(CFG['i'], shader_type)
+    
+def get_intermediate_path(in_path, shader_type):
+    intermediate_dir = get_intermediate_dir(shader_type)
+    out_path = os.path.join(intermediate_dir, in_path)
+    return out_path.replace('.sc', '.bin')
+
+def get_target_lookups():
+    if var("TARGET").upper() == 'ALL':
+        return [x for x in range(0,6)]
+    try:
+        targ_list = [int(x) for x in var("TARGET").split(',')]
+    except ValueError:
+        return None
+
+    return targ_list
+        
+       
+
+# called at the start of the build
+def start_build():
+    global TARGETS, CFG
+
+    targets = get_target_lookups()
+    good_range = True
+    if targets == None:
+        good_range  = False
+    else:
+        for i in targets:
+            if i > 6 or i < 0: good_range = False
+    
+    if len(var("TARGET")) == 0 or not good_range:
+        msg = 'Usage: jfdi.py --var TARGET=#,#,# or TARGET=all\n'
+        msg += 'TARGET is a comma-separated list of targets\n'
+
+        for i in range(0, len(TARGETS)):
+            target = TARGETS[i]
+            msg += "  TARGET=%d (%s)\n" % (i, target['desc'])
+        die(msg)
+
+    mkd(CFG['i'])
+        
+    
+
+# return a list of files
+def list_input_files():
+    return ['vs_*.sc', 'fs_*.sc', 'cs_*.sc']
+
+
+
+# return command to build single file in_path or None to skip
+def build_this(in_path):
+    global CFG
+    
+    shaderc = get_shaderc()
+    targets = get_target_lookups()
+    include_path = ';'.join(CFG['include_path'])
+    vary = CFG['varying_path']
+
+    for target_idx in targets:
+        out_path = get_intermediate_path(in_path,
+                                         TARGETS[target_idx]['name'])
+        mkd(get_intermediate_dir(TARGETS[target_idx]['name']))
+
+        if not new(in_path, out_path):
+            continue
+        
+        # build vertex
+        if in_path[:2] == 'vs':
+            vs_flags = TARGETS[target_idx]['vs_flags']
+
+            cmd(exp("$shaderc $vs_flags --type vertex --depends " + \
+                    "-o $out_path -f $in_path --disasm -i $include_path " + \
+                    "--varyingdef $vary"))
+
+            # build fragment
+        elif in_path[:2] == 'fs':
+            fs_flags = TARGETS[target_idx]['fs_flags']
+
+            cmd(exp("$shaderc $fs_flags --type fragment --depends " + \
+                    "-o $out_path -f $in_path --disasm -i $include_path " + \
+                    "--varyingdef $vary"))
+
+            # build compute shaders
+        elif in_path[:2] == 'cs':
+            cs_flags = TARGETS[target_idx]['cs_flags']
+            if cs_flags == None:
+                return None
+
+            cmd(exp("$shaderc $cs_flags --type compute --depends " + \
+                    "-o $out_path -f $in_path --disasm -i $include_path " + \
+                    "--varyingdef $vary"))
+
+    # build right in the function instead of returning the build cmd.
+    # this is valid, but there is no way for future jobification
+    # so all builds are serial.
+    return None
+
+# called after every input file has been built
+def end_build(in_files):
+    # copy each built file to output path.  unlike the bgfx makefile
+    # which copies after each success, this is atomic on successful compile.
+
+    targets = get_target_lookups()
+
+    for target_idx in targets:
+        output_path = TARGETS[target_idx]['name']
+        mkd(output_path)
+        for file in in_files:
+            intermediate_path = get_intermediate_path(file,
+                                                      TARGETS[target_idx]['name'])
+
+            if not os.path.exists(intermediate_path):
+                continue
+
+            cp(intermediate_path, output_path)
+
+# called when the user requests --clean
+def clean(in_files):
+    intermediate_dir = CFG['i']
+    rm(intermediate_dir)
+
+    targets = get_target_lookups()    
+    for target_idx in targets:
+        output_path = TARGETS[target_idx]['name']
+        rm(output_path)
+    
+#
+# End build logic
+#
+
+    
+#
+# main -- installs build system if build script is run directly
+#
+# generated code: do not edit this
+#
+if __name__ == '__main__':
+    import sys
+    import os.path
+    import urllib.request
+    
+    print("You have run the build script directly.")
+    print("Expected Usage: python jfdi.py -f %s" %
+          sys.argv[0])
+
+    DST_FILENAME = 'jfdi.py'
+    if os.path.exists(DST_FILENAME):
+        sys.exit(0)
+    print("Do you want to download the JFDI build script?")
+    yesno = input('Y/n -->')
+    if yesno == 'n':
+        sys.exit(0)
+
+    print("downloading jfdi.py")
+    url = "https://raw.githubusercontent.com/mlabbe/jfdi/master/jfdi.py"
+    urllib.request.urlretrieve(url, DST_FILENAME)
+    
+    print("%s downloaded." % DST_FILENAME)
+    print("Usage: python %s -f %s" %
+          (DST_FILENAME, sys.argv[0]))
+    print("To permanently install jfdi, manually copy jfdi.py into your search path.")
+    sys.exit(0)
+
