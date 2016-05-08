@@ -9,6 +9,9 @@
 # latest version, examples and documentation:
 # https://github.com/mlabbe/jfdi.git
 
+# todo:
+# handle OSError could not rmdir because a dos prompt is in it
+
 import sys
 if sys.version_info[0] < 3:
     sys.stderr.write('JFDI requires Python 3\n')
@@ -17,6 +20,7 @@ if sys.version_info[0] < 3:
 import os
 import sys
 import glob
+import time
 import shutil
 import os.path
 import argparse
@@ -240,6 +244,11 @@ def _run_cmd(cmd):
         _fatal_error("error '%d' running command \"%s\"\n" %
                      (exit_code, cmd))
 
+def _report_success(start_time):
+    end_time = time.time()
+    delta_time = end_time - start_time
+    _message(0, "success in %.3f seconds." % delta_time)
+        
 def generate_tmpl(path):
     if os.path.exists(path):
         _fatal_error("%s already exists.\n" % path)
@@ -374,7 +383,7 @@ def _api_cmd(cmd):
         
     ret = subprocess.call(cmd, shell=True)
     if ret != 0:
-        _fatal_error("error running \"%s\"\n" % cmd)
+        _fatal_error("\nerror running \"%s\"\n" % cmd)
     return ret
 
 def _api_cp(src, dst):
@@ -599,6 +608,7 @@ def _api_pth(path):
 #
 
 if __name__ == '__main__':
+    start_time = time.time()
     args = _parse_args()
 
     if args.init:
@@ -608,6 +618,7 @@ if __name__ == '__main__':
     pycode = _get_script()
     context = _run_script(pycode)
     _build(context)
-    _message(0, "success.")
+
+    _report_success(start_time)
     sys.exit(0)
 
