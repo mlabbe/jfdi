@@ -151,29 +151,45 @@ def _add_api(g):
     return g
 
 def _run_script(pycode):
-    locals = {}
     g = _add_api(globals())
 
     push_name = globals()['__name__']
     globals()['__name__'] = '__jfdi__'
-    exec(pycode, g, locals)
+    exec(pycode, g)
     globals()['__name__'] = push_name
 
     # validate expected functions
     
     # todo: fill this out
     missing_msg = ""
-    if 'list_input_files' not in locals:
+    if 'list_input_files' not in g:
         missing_msg += "list_input_files() must exist\n"
 
     if len(missing_msg) != 0:
         sys.stderr.write("errors were found during execution:\n")
         _fatal_error(missing_msg)
     
-    context = [globals(), locals]
+    context = [globals()]
     return context
 
-def _handle_str_input_files(input_files):
+def _handle_input_files(input_files):
+    if input_files.__class__ == str:
+        input_files = [input_files]
+
+    out_paths = []
+        
+    for entry in input_files:
+        if '*' in entry:
+            wildcard = glob.glob(entry)
+            for path in wildcard:
+                out_paths.append(path)
+        else:
+            out_paths.append(entry)
+
+    return out_paths
+
+# deprecated
+def _handle_str_input_files_old(input_files):
     out_files = []
     if '*' in input_files:
         wildcard = glob.glob(input_files)
@@ -194,19 +210,18 @@ def _build(context):
     if _cfg['args'].target_os:
         globals()['TARGET_OS'] = _cfg['args'].target_os
         
-    input_files = context[1]['list_input_files']()
-    if input_files.__class__ == str:
-        input_files = _handle_str_input_files(input_files)
+    input_files = context[0]['list_input_files']()
+    input_files = _handle_input_files(input_files)
     if _cfg['args'].clean:
         _message(1, "cleaning")
-        context[1]['clean'](input_files)
+        context[0]['clean'](input_files)
         sys.exit(0)
 
-    context[1]['start_build']()
+    context[0]['start_build']()
         
     cmd_list = []
     for path in input_files:
-        cmd = context[1]['build_this'](path)
+        cmd = context[0]['build_this'](path)
         if cmd != None:
             cmd_list.append(cmd)
 
@@ -216,7 +231,7 @@ def _build(context):
     for cmd in cmd_list:
         _run_cmd(cmd)
 
-    context[1]['end_build'](input_files)
+    context[0]['end_build'](input_files)
 
 def _run_cmd(cmd):
     _message(0, cmd)
