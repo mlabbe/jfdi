@@ -264,6 +264,7 @@ def generate_tmpl(path):
 #
 # NOTE:
 # if you do not have jfdi.py, run this script with python to get it.
+# or clone https://github.com/mlabbe/jfdi
 \"""
 jfdi build script
 
@@ -483,6 +484,8 @@ def _api_arg(flag):
 
 def _api_obj(path, in_prefix_path=''):
     prefix_path = _swap_slashes(in_prefix_path)
+    if 'CCTYPE' not in globals():
+        _fatal_error('you must call arm() before calling obj()\n')
     
     if path.__class__ == list:
         obj_str = ''
