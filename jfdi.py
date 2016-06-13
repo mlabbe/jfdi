@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # JFDI is
 # Copyright (C) 2016 Frogtoss Games, Inc.
@@ -27,7 +27,7 @@ import argparse
 import platform
 import subprocess
 
-VERSION=(0,1)
+VERSION=(0,2)
 
 _cfg = {}
 
@@ -46,7 +46,7 @@ def _parse_args():
     p.add_argument('--target-os', help='specify TARGET_OS for cross compiling')
     p.add_argument('--init', help="create new build.jfdi file in CWD",
                    action='store_true')
-    p.add_argument('--force', help='force rebuild -- new() always true',
+    p.add_argument('-F', '--force', help='force rebuild -- new() always true',
                    action='store_true')
                    
     args = p.parse_args()
@@ -73,6 +73,12 @@ def _parse_args():
     _cfg['vars'] = vars
 
     return args
+
+def _which(file):
+    for path in os.environ["PATH"].split(os.pathsep):
+        if os.path.exists(os.path.join(path, file)):
+            return os.path.join(path, file)
+    return None
 
 def _message(verbosity, in_msg):
     global cfg
@@ -457,10 +463,10 @@ def _api_arm(id):
         msg += "\tmsvc, clang, gcc\n"
         _fatal_error(msg)
 
-    if shutil.which(v['CC']) == None:
+    if _which(v['CC']) == None:
         _warning("arm(): compiler '%s' not found in search path.\n" % v['CC'])
 
-    if shutil.which(v['LD']) == None:
+    if _which(v['LD']) == None:
         _warning("arm(): linker '%s' not found in search path.\n" % v['LD'])
 
     g = globals()
