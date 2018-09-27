@@ -54,6 +54,10 @@ def clean(in_files):
 
 See [examples](examples/) for more use cases.
 
+## Changes ##
+
+ - September 2018: added `raw()` command to get a filename without extension.
+
 ### Versus Makefiles ###
 
 On Windows, GNU Make brings in a Unix runtime (via Cygwin, MSYS2, etc.) which can take up a gigabyte. Furthermore, it handles fork() poorly and whether it uses Unix paths is install-dependent.  The official GNU Make binary is over a decade old and does not work on modern Windows.
@@ -105,11 +109,11 @@ Run `jfdi.py --init` to generate one.  Alternatively, read the code to `jfdi.py`
 
 # Known Limitations #
 
-This software is in beta and hasn't been thoroughly tested yet.  This message will be removed as the author uses it more heavily.
+This software has been in use for two years on the author's small projects.  It generally works well.  The issues on Github consist of all the known issues.
 
 # Copyright and Credit #
 
-Copyright &copy; 2016 Frogtoss Games, Inc.  File [LICENSE](LICENSE) covers all files in this repo.
+Copyright &copy; 2016-2018 Frogtoss Games, Inc.  File [LICENSE](LICENSE) covers all files in this repo.
 
 JFDI by Michael Labbe. <mike@frogtoss.com>
 

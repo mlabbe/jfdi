@@ -158,6 +158,7 @@ def _add_api(g):
     g['exe'] = _api_exe
     g['exp'] = _api_exp
     g['pth'] = _api_pth
+    g['raw'] = _api_raw
     return g
 
 def _run_script(pycode):
@@ -284,7 +285,8 @@ available functions:
   env(str)      - return environment variable or None
   exe(str)      - return filename with exe extension based on TARGET_OS
   exp(str)      - expand a $string, searching CLI --vars and then global scope
-  ext(str)      - return file extension (file.c = .c)
+  ext(str)      - return file extension         (file.c = .c)
+  raw(str)      - return file without extension (file.c = file)
   log(str)      - print to stdout
   mkd(str)      - make all subdirs
   new(src,dst)  - true if file src is newer than file dst
@@ -373,6 +375,9 @@ if __name__ == '__main__':
 #
 def _api_ext(x):
     return os.path.splitext(x)[1]
+
+def _api_raw(x):
+    return os.path.splitext(x)[0]
 
 def _api_log(msg):
     print("log:\t%s" % msg)
