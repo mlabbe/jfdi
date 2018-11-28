@@ -27,7 +27,7 @@ import argparse
 import platform
 import subprocess
 
-VERSION=(0,2)
+VERSION=(0,3)
 
 _cfg = {}
 
@@ -95,10 +95,10 @@ def _message(verbosity, in_msg):
 def _warning(msg):
     sys.stderr.write("warning: " + msg)
 
-def _fatal_error(msg):
+def _fatal_error(msg, error_code=1):
     sys.stderr.write(msg)
-    sys.stderr.write("exiting with error code 1\n")
-    sys.exit(1)
+    sys.stderr.write("exiting with error code %d\n" % error_code)
+    sys.exit(error_code)
 
 def _get_script():
     """compiled contents of script or error out"""
@@ -280,7 +280,7 @@ available functions:
   rm(str)       - remove file or directory
   arg(str)      - convert a /flag into a -flag depending on compiler
   arm('?')      - arm environment with make-like variables (LD, CC, etc.)
-  cmd(list|str) - run a command on a shell, fatal if error
+  cmd(list|str) - run a command on a shell, fatal if error, stdout returns as str
   die(str)      - fail build with a message, errorlevel 3
   env(str)      - return environment variable or None
   exe(str)      - return filename with exe extension based on TARGET_OS
@@ -392,11 +392,21 @@ def _api_cmd(cmd):
         _message(0, ' '.join(cmd))
     else:
         _message(0, cmd)
-        
-    ret = subprocess.call(cmd, shell=True)
+
+    proc = subprocess.Popen(cmd, shell=True,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
+    out, err = proc.communicate()
+    ret = proc.returncode
+
     if ret != 0:
-        _fatal_error("\nerror running \"%s\"\n" % cmd)
-    return ret
+        _fatal_error("\nerror code %d running \"%s\"\n" % (ret, cmd),
+                     error_code=ret)
+
+    if len(err) != 0:
+        _warning(err)
+
+    return out.rstrip().decode('utf-8')
 
 def _api_cp(src, dst):
     if os.path.isdir(src):

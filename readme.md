@@ -56,7 +56,8 @@ See [examples](examples/) for more use cases.
 
 ## Changes ##
 
- - September 2018: added `raw()` command to get a filename without extension.
+ - *0.0.2*: September 2018: added `raw()` command to get a filename without extension.
+ - *0.0.3*: November 2018:  `cmd()` now returns stdout as newline-trimmed utf-8 string instead of errorlevel
 
 ### Versus Makefiles ###
 
