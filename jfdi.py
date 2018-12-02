@@ -10,7 +10,8 @@
 # https://github.com/mlabbe/jfdi.git
 
 # todo:
-# handle OSError could not rmdir because a dos prompt is in it
+# - handle OSError could not rmdir because a dos prompt is in it
+# - JFDI_VERSION in generated script does not match VERSION here
 
 import sys
 if sys.version_info[0] < 3:
@@ -254,7 +255,7 @@ def _run_cmd(cmd):
 def _report_success(start_time):
     end_time = time.time()
     delta_time = end_time - start_time
-    _message(0, "success in %.3f seconds." % delta_time)
+    _message(0, "success in %.1f seconds." % delta_time)
         
 def generate_tmpl(path):
     if os.path.exists(path):
