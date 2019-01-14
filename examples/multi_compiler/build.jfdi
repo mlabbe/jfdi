@@ -18,7 +18,7 @@ available functions:
   ext(str)      - return file extension (file.c = .c)
   exp(str)      - expand a $string, using all global vars
   mkd(str)      - make all subdirs
-  arm('?')      - arm environment with make-like variables (LD, CC, etc.)
+  use('?')      - arm environment with make-like variables (LD, CC, etc.)
   arg(str)      - convert a /flag into a -flag depending on compiler
   var(str,type) - get command line var passed in with --var or ''
   pth(str)      - swap path slashes -- \ on windows, / otherwise
@@ -30,7 +30,7 @@ variables:
   HOST_OS       - compiling machine OS    (str)
   TARGET_OS     - target machine OS       (str)
 
-after arm(), variables, where applicable:
+after use(), variables, where applicable:
   CC            - c compiler
   CXX           - c++ compiler
   LD            - linker
@@ -56,17 +56,17 @@ cfg = {'i': pth(".\\intermediates\\")}
 def start_build():
     global cfg
     if HOST_OS == 'Windows':
-        arm("msvc")
+        use("msvc")
     elif HOST_OS == 'Darwin':
-        arm("clang")
+        use("clang")
     elif HOST_OS == 'Linux':
         # Pass --var COMPILER=clang from the command line to build 
         # with clang on Linux.
         if var("COMPILER") == 'clang':
             log("overriding gcc with clang")
-            arm("clang")
+            use("clang")
         else:
-            arm("gcc")
+            use("gcc")
         
     mkd(cfg['i'])
 

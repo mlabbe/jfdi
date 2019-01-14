@@ -14,7 +14,7 @@ available functions:
   cp(src, dst)  - copy a file or directory
   rm(str)       - remove file or directory
   arg(str)      - convert a /flag into a -flag depending on compiler
-  arm('?')      - arm environment with make-like variables (LD, CC, etc.)
+  use('?')      - arm environment with make-like variables (LD, CC, etc.)
   cmd(list|str) - run a command on a shell, fatal if error
   die(str)      - fail build with a message, errorlevel 3
   env(str)      - return environment variable or None
@@ -32,7 +32,7 @@ variables:
   HOST_OS       - compiling machine OS    (str)
   TARGET_OS     - target machine OS       (str)
 
-after arm(), variables, where applicable:
+after use(), variables, where applicable:
   CC            - c compiler
   CXX           - c++ compiler
   LD            - linker
@@ -49,7 +49,7 @@ JFDI_VERSION = 1
 # called at the start of the build
 def start_build():
     # arm with the clang compiler
-    arm("clang")
+    use("clang")
 
     # after arming, CC is a variable in the global scope
     log("The global value CC is " + CC)

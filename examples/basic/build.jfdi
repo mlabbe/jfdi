@@ -14,7 +14,7 @@ available functions:
   cp(src, dst)  - copy a file or directory
   rm(str)       - remove file or directory
   arg(str)      - convert a /flag into a -flag depending on compiler
-  arm('?')      - arm environment with make-like variables (LD, CC, etc.)
+  use('?')      - arm environment with make-like variables (LD, CC, etc.)
   cmd(list|str) - run a command on a shell, fatal if error
   die(str)      - fail build with a message, errorlevel 3
   env(str)      - return environment variable or None
@@ -32,7 +32,7 @@ variables:
   HOST_OS       - compiling machine OS    (str)
   TARGET_OS     - target machine OS       (str)
 
-after arm(), variables, where applicable:
+after use(), variables, where applicable:
   CC            - c compiler
   CXX           - c++ compiler
   LD            - linker
@@ -50,7 +50,7 @@ JFDI_VERSION = 1
 def start_build():
     # this demonstration works with clang.  see multi_compiler
     # example for one that builds with msvc, gcc or clang.
-    arm("clang")
+    use("clang")
 
     # make output directory or do nothing if it exists
     mkd("bin")
@@ -103,7 +103,7 @@ def end_build(in_files):
 def clean(in_files):
     # arm the build environment for the clang compiler
     # (this makes obj() understand the obj extension is .o)
-    arm("clang")
+    use("clang")
 
     # remove the obj file corresponding to each .c file
     for file in in_files:
