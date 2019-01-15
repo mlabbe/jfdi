@@ -28,7 +28,7 @@ import argparse
 import platform
 import subprocess
 
-VERSION=(0,3)
+VERSION=(0,4)
 
 _cfg = {}
 
@@ -151,7 +151,7 @@ def _add_api(g):
     g['cp']  = _api_cp
     g['rm']  = _api_rm
     g['env'] = _api_env
-    g['arm'] = _api_arm
+    g['use'] = _api_use
     g['arg'] = _api_arg
     g['obj'] = _api_obj
     g['var'] = _api_var
@@ -280,7 +280,7 @@ available functions:
   cp(src, dst)  - copy a file or directory
   rm(str)       - remove file or directory
   arg(str)      - convert a /flag into a -flag depending on compiler
-  arm('?')      - arm environment with make-like variables (LD, CC, etc.)
+  use('?')      - add make-like variables (LD, CC, etc.). gcc, clang, msvc
   cmd(list|str) - run a command on a shell, fatal if error, stdout returns as str
   die(str)      - fail build with a message, errorlevel 3
   env(str)      - return environment variable or None
@@ -299,7 +299,7 @@ variables:
   HOST_OS       - compiling machine OS    (str)
   TARGET_OS     - target machine OS       (str)
 
-after arm(), variables, where applicable:
+after use(), variables, where applicable:
   CC            - c compiler
   CXX           - c++ compiler
   LD            - linker
@@ -440,7 +440,7 @@ def _api_env(e):
         return None
     return os.environ[e]
 
-def _api_arm(id):
+def _api_use(id):
     v = {}
     if id[:4] == 'msvc':
         v['CC'] = 'cl.exe'
@@ -474,16 +474,16 @@ def _api_arm(id):
         
 
     else:
-        msg =  "arm() unknown ID '%s'\n" % (id)
+        msg =  "use() unknown ID '%s'\n" % (id)
         msg += "acceptable Ids:\n"
         msg += "\tmsvc, clang, gcc\n"
         _fatal_error(msg)
 
     if _which(v['CC']) == None:
-        _warning("arm(): compiler '%s' not found in search path.\n" % v['CC'])
+        _warning("use(): compiler '%s' not found in search path.\n" % v['CC'])
 
     if _which(v['LD']) == None:
-        _warning("arm(): linker '%s' not found in search path.\n" % v['LD'])
+        _warning("use(): linker '%s' not found in search path.\n" % v['LD'])
 
     g = globals()
     for var in v:
@@ -491,7 +491,7 @@ def _api_arm(id):
 
 def _api_arg(flag):
     if 'CCTYPE' not in globals():
-        _fatal_error("must call arm() before arg()")
+        _fatal_error("must call use() before arg()")
 
     i = 0
     if flag[0] == '-' or flag[0] == '/':
@@ -507,7 +507,7 @@ def _api_arg(flag):
 def _api_obj(path, in_prefix_path=''):
     prefix_path = _swap_slashes(in_prefix_path)
     if 'CCTYPE' not in globals():
-        _fatal_error('you must call arm() before calling obj()\n')
+        _fatal_error('you must call use() before calling obj()\n')
     
     if path.__class__ == list:
         obj_str = ''
