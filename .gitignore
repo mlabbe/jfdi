@@ -60,3 +60,10 @@ target/
 
 #Ipython Notebook
 .ipynb_checkpoints
+
+# emacs
+*~*
+
+# jfdi-specific
+test_file_*
+hello.exe

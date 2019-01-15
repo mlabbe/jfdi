@@ -256,6 +256,22 @@ def _report_success(start_time):
     end_time = time.time()
     delta_time = end_time - start_time
     _message(0, "success in %.1f seconds." % delta_time)
+
+def _str_to_list(val):
+    """If val is str, return list with single entry, else return as-is."""
+    l = []
+    if val.__class__ == str:
+        l.append(val)
+        return l
+    else:
+        return val
+
+def _list_single_to_str(val):
+    """If val is len(list) 1, return first entry, else return as-is."""
+    if val.__class__ == list and len(val) == 1:
+        return val[0]
+    else:
+        return val
         
 def generate_tmpl(path):
     if os.path.exists(path):
@@ -511,7 +527,31 @@ def _api_arg(flag):
         
     return symbol + flag[i:]
 
+
 def _api_obj(path, in_prefix_path=''):
+    prefix_path = _swap_slashes(in_prefix_path)
+    if 'CCTYPE' not in globals():
+        _fatal_error('you must call use() before calling obj()\n')
+
+    in_paths = _str_to_list(path)
+    out_paths = []
+    
+    ext = ''
+    if globals()['CCTYPE'] == 'msvc':
+        ext = '.obj'
+    elif globals()['CCTYPE'] == 'gcc':
+        ext = '.o'
+
+    for p in in_paths:
+        split = os.path.splitext(p)
+
+        filename = split[0] + ext
+        out_paths.append(filename)
+
+    return _list_single_to_str(out_paths)
+    
+
+def _api_obj_old(path, in_prefix_path=''):
     prefix_path = _swap_slashes(in_prefix_path)
     if 'CCTYPE' not in globals():
         _fatal_error('you must call use() before calling obj()\n')
