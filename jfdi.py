@@ -278,7 +278,7 @@ jfdi build script
 
 available functions:
   cp(src, dst)  - copy a file or directory
-  rm(str)       - remove file or directory
+  rm(str|iter)  - remove file or directory
   arg(str)      - convert a /flag into a -flag depending on compiler
   use('?')      - add make-like variables (LD, CC, etc.). gcc, clang, msvc
   cmd(list|str) - run a command on a shell, fatal if error, stdout returns as str
@@ -421,19 +421,26 @@ def _api_die(msg):
     sys.stderr.write("die: " + msg + "\n")
     sys.exit(3)
 
-def _api_rm(f):
-    if not os.path.exists(f):
-        _message(1, "rm nonexistent %s" % f)
-        return
-
-    f = _swap_slashes(f)
-    
-    if os.path.isdir(f):
-        _message(0, "rmdir %s" % f)
-        shutil.rmtree(f, ignore_errors=False)
+def _api_rm(files):
+    file_list = []
+    if files.__class__ == str:
+        file_list.append(files)
     else:
-        _message(0, "rm %s" % f)
-        os.remove(f)
+        file_list = files
+
+    for f in file_list:
+        if not os.path.exists(f):
+            _message(1, "rm nonexistent %s" % f)
+            continue
+
+        f = _swap_slashes(f)
+    
+        if os.path.isdir(f):
+            _message(0, "rmdir %s" % f)
+            shutil.rmtree(f, ignore_errors=False)
+        else:
+            _message(0, "rm %s" % f)
+            os.remove(f)
 
 def _api_env(e):
     if e not in os.environ:
@@ -508,7 +515,10 @@ def _api_obj(path, in_prefix_path=''):
     prefix_path = _swap_slashes(in_prefix_path)
     if 'CCTYPE' not in globals():
         _fatal_error('you must call use() before calling obj()\n')
-    
+
+    # FIXME: don't join this; it makes passing it to rm() impossible
+    #
+    # rm(obj(in_files)) should be a common use pattern.
     if path.__class__ == list:
         obj_str = ''
         for p in path:
