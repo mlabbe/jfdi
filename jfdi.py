@@ -400,12 +400,12 @@ def _api_cmd(cmd):
     out, err = proc.communicate()
     ret = proc.returncode
 
+    if len(err) != 0:
+        _warning(err.decode('utf-8'))
+
     if ret != 0:
         _fatal_error("\nerror code %d running \"%s\"\n" % (ret, cmd),
                      error_code=ret)
-
-    if len(err) != 0:
-        _warning(err)
 
     return out.rstrip().decode('utf-8')
 
