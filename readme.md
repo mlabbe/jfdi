@@ -59,6 +59,8 @@ See [examples](examples/) for more use cases.
  - *0.0.2*: September 2018: added `raw()` command to get a filename without extension.
  - *0.0.3*: November 2018:  `cmd()` now returns stdout as newline-trimmed utf-8 string instead of errorlevel
  - *0.0.4*: January 2018: `arm()` renamed `use()` to reduce confusion. All breaking changes scheduled for before 1.0.
+ - `rm()` now works on str, list and iter inputs
+ - `obj()` bugfix: on iter input returns list, as expected
 
 ### Versus Makefiles ###
 
