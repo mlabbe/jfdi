@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # JFDI is
-# Copyright (C) 2016 Frogtoss Games, Inc.
+# Copyright (C) 2016-2019 Frogtoss Games, Inc.
 #
 # Author Michael Labbe
 # See LICENSE in this repo for license terms
@@ -35,13 +35,12 @@ _cfg = {}
 def _parse_args():
     global cfg
 
-    desc = "JFDI Build System version %d.%d" % (VERSION[0], VERSION[1])
-    p = argparse.ArgumentParser(description=desc)
+    desc = "JFDI Simple Build System version %d.%d" % (VERSION[0], VERSION[1])
+    p = argparse.ArgumentParser(description=desc,
+                                usage="%(prog)s [options] [var=value ...]")
     p.add_argument('-v', '--verbose', help="increase verbosity",
                    action='store_true')
     p.add_argument('-f', '--file', help='read FILE as build.jfdi')
-    p.add_argument('-V', '--var', help='pass along build var to script',
-                   action='append')
     p.add_argument('-c', '--clean', help="clean the build and exit",
                    action='store_true')
     p.add_argument('--target-os', help='specify TARGET_OS for cross compiling')
@@ -50,17 +49,16 @@ def _parse_args():
     p.add_argument('-F', '--force', help='force rebuild -- new() always true',
                    action='store_true')
                    
-    args = p.parse_args()
+    args, unknown = p.parse_known_args()
     _cfg['args'] = args
 
-    # split out args with equals signs and put them in _cfg['vars']{}
+    # unknown arg parse sets variables 
     # some var facts:
     #  - case insensitive
     #  - accessed with var(key, type), where type can be bool, int, str
     #  - if no equals sign, then default to int(1) for value
     vars = {}
-    if args.var == None: args.var = []
-    for v in args.var:
+    for v in unknown:
         var = v.split('=', 1)
 
         # all vars are uppercase
@@ -70,6 +68,10 @@ def _parse_args():
             vars[ukey] = var[1]
         else:
             vars[ukey] = 1
+
+    if _cfg['args'].verbose:
+        for v in vars:
+            print("build var %s = %s" % (v, vars[v]))
 
     _cfg['vars'] = vars
 
@@ -309,7 +311,7 @@ available functions:
   new(src,dst)  - true if file src is newer than file dst
   obj(str)      - return filename with obj file ext (file.c = file.obj)
   pth(str)      - swap path slashes -- \ on windows, / otherwise
-  var(str,type) - get command line var passed in with --var or -V
+  var(str,type) - get command line var passed in during build instantiation
 
 variables:
   HOST_OS       - compiling machine OS    (str)
@@ -438,11 +440,8 @@ def _api_die(msg):
     sys.exit(3)
 
 def _api_rm(files):
-    file_list = []
-    if files.__class__ == str:
-        file_list.append(files)
-    else:
-        file_list = files
+
+    file_list = _str_to_list(files)
 
     for f in file_list:
         if not os.path.exists(f):
@@ -592,7 +591,7 @@ def _api_var(key,type=str):
     if ukey in _cfg['vars']:
         val = _cfg['vars'][ukey]
 
-        # hack: string 0 would be true
+        # workaround: string 0 would be true
         if type == bool and val == '0':
             val = 0
         

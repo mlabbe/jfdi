@@ -57,7 +57,7 @@ def start_build():
     # exp searches for $CC, first in vars passed in from the command line,
     # and then from the global scope.
     log(exp("CC is $CC"))
-    # go ahead and run jfdi.py with --var CC=gcc and see the difference
+    # go ahead and run jfdi.py with jfdi.py CC=gcc and see the difference
 
     # CFLAGS is an empty list of compiler flags, also in the global scope.
     # When exp() expands a list, it returns a string with each element
@@ -73,7 +73,7 @@ def start_build():
     log(exp("expanding a local var: $a_local_var"))
     # if a variable exists in the local function, it takes precedence
     # above all else.  It cannot be overridden from the command line.
-    # --var a_local_var=whoops does nothing.
+    # jfdi.py a_local_var=whoops does nothing.
 
     die("end of demo; we aren't actually building anything")
 

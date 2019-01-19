@@ -60,7 +60,7 @@ def start_build():
     elif HOST_OS == 'Darwin':
         use("clang")
     elif HOST_OS == 'Linux':
-        # Pass --var COMPILER=clang from the command line to build 
+        # Pass jfdi.py COMPILER=clang from the command line to build 
         # with clang on Linux.
         if var("COMPILER") == 'clang':
             log("overriding gcc with clang")
@@ -74,7 +74,7 @@ def start_build():
     # build_this could be called many times and appending CFLAGS
     # there would just repeatedly fill it up.
     #
-    # We check if --var DEBUG=1 was passed in and use different
+    # We check if jfdi.py DEBUG=1 was passed in and use different
     # compile flags.
     if var('DEBUG', bool):
         if CCTYPE == 'msvc':

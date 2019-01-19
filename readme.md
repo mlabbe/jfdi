@@ -10,17 +10,27 @@ The build system for people who tolerate batch files and shell scripts for small
 
 ## Rationale ##
 
-Plenty of build systems aim to scale to large codebases.  They contain knowledge about your environment and aim to automate common tasks.  JFDI scales to the lowend.  It is scripting with helpers and hooks -- designed to let you define your own build logic so you can just get the thing built.  JFDI.
+Plenty of build systems aim to scale to large codebases.  They contain knowledge about your environment and aim to automate common tasks.  JFDI scales to the lowend.  It is scripting with helpers and hooks -- designed to let you script your own build logic so you can just get the thing built.  **JFDI.**
+
+## Un-features ##
+
+- Designed to scale to the small-end only
+- Not designed to be fast for managing large builds
+- No definition format to learn, just code in Python
+- No operating system-specific hooks
 
 ## Features ##
 
+- Just code your build in Python using functions designed to make building convenient
+- Self-propagating: end-user runs the build script directly to download the jfdi build system
 - Tested and nurtured to life on Linux, Macos and Windows with GCC, Clang and MSVC support
-- One small Python file with no dependencies other than Python itself.
-- Self-propagating: run `build.jfdi` script directly (equivalent to makefiles) to download the jfdi build system.
-- Provides an API of conveniently named functions to do common things.
-- Generate a self-documented build template to get started with `--init`.
-- Portable build scripts that work anywhere Python runs.
-- Automatically swaps dir slashes for easy x-platform scripting.
+- First class support for non-compiler building (LaTeX, shaders, etc.)
+- Build system will always be one small Python file with no dependencies other than Python
+- Provides a small API to simplify build tasks; much less wordy than stock Python libraries
+- Generate a self-documented build template to get started with `--init`
+- Portable build scripts that work anywhere Python runs
+- Automatically swaps dir slashes for easy x-platform scripting
+- Used by the author for a ton of small projects for 3 years and counting
 
 ## Sample Script ##
 
@@ -32,21 +42,43 @@ This builds a multi-file C project with clang, putting build products in a `bin/
 # build.jfdi
 
 def start_build():
-    arm("clang")
+    # set CC, LD, etc. to common clang values
+    use("clang")
+    # make subdir if it doesn't exist
     mkd("bin")
-    
-def list_input_files():
-    return ['hello.c', 'main.c']
 
+
+# list all files to compile.
+def list_input_files():
+    # wildcards are welcome
+    return ['hello.c', 'main.c', '*.c']
+
+
+# called once per file that will be compiled
 def build_this(in_path):
+
+    # given path to source file, get a path to the output .o
+    # note this would automatically be .obj if msvc was used
     obj_path = obj(in_path, "bin")
+
+    # return the command to build this file
+    # exp expands $-based variables
     return exp("$CC $CFLAGS -c $in_path -o $obj_path)
 
+
+# called once at the end of a build
 def end_build(in_files):
+    # given a list of all input source files, get a list of
+    # all obj files
     objs = obj(in_files, "bin")
+
+    # cmd executes a command line program which must succeed to continue
     cmd(exp("$LD $LDFLAGS $objs -o bin/hello"))
 
+
+# called when the user uses jfdi -c
 def clean(in_files):
+    # rm deletes a directory or file
     rm("bin")
 ```
 
@@ -61,6 +93,7 @@ See [examples](examples/) for more use cases.
  - *0.0.4*: January 2018: `arm()` renamed `use()` to reduce confusion. All breaking changes scheduled for before 1.0.
  - `rm()` now works on str, list and iter inputs
  - `obj()` bugfix: on iter input returns list, as expected
+ - `--var` cmdline now implicit; just pass `arg=value` pairs 
 
 ### Versus Makefiles ###
 
@@ -104,6 +137,10 @@ SCons is a good candidate to upgrade to if your project becomes too large for JF
     emacs build.jfdi         # edit self-documenting build script
     jfdi.py                  # run build.jfdi in cwd, building your program
 
+### Extended Usage ###
+
+    jfdi.py DEBUG=1          # pass build variable DEBUG to build script, var('DEBUG') returns 1
+
 See also: [examples](examples/)
 
 ## Documentation ##
@@ -117,7 +154,7 @@ This software has been in use for two years on the author's small projects.  It 
 
 # Copyright and Credit #
 
-Copyright &copy; 2016-2018 Frogtoss Games, Inc.  File [LICENSE](LICENSE) covers all files in this repo.
+Copyright &copy; 2016-2019 Frogtoss Games, Inc.  File [LICENSE](LICENSE) covers all files in this repo.
 
 JFDI by Michael Labbe. <mike@frogtoss.com>
 

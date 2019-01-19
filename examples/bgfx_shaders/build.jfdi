@@ -157,7 +157,7 @@ def start_build():
             if i > 6 or i < 0: good_range = False
     
     if len(var("TARGET")) == 0 or not good_range:
-        msg = 'Usage: jfdi.py --var TARGET=#,#,# or TARGET=all\n'
+        msg = 'Usage: jfdi.py TARGET=#,#,# or TARGET=all\n'
         msg += 'TARGET is a comma-separated list of targets\n'
 
         for i in range(0, len(TARGETS)):
