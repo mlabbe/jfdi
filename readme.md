@@ -15,13 +15,13 @@ Plenty of build systems aim to scale to large codebases.  They contain knowledge
 ## Un-features ##
 
 - Designed to scale to the small-end only
-- Not designed to be fast for managing large builds
-- No definition format to learn, just code in Python
-- No operating system-specific hooks
+- Not destined to be fast for managing large builds
+- Not the author's big idea of a perfect build system
+- No definition format to learn, just code in Python with a batchy api
 
 ## Features ##
 
-- Just code your build in Python using functions designed to make building convenient
+- Just code your build in portable Python using functions designed to make building convenient
 - Self-propagating: end-user runs the build script directly to download the jfdi build system
 - Tested and nurtured to life on Linux, Macos and Windows with GCC, Clang and MSVC support
 - First class support for non-compiler building (LaTeX, shaders, etc.)
@@ -36,7 +36,11 @@ Plenty of build systems aim to scale to large codebases.  They contain knowledge
 
 This builds a multi-file C project with clang, putting build products in a `bin/` subdirectory.
 
-    jfdi.py --init  # generate template build file build.jfdi
+    # get the latest stable jfdi
+    wget https://raw.githubusercontent.com/mlabbe/jfdi/master/jfdi.py
+
+    # generate template build file build.jfdi
+    jfdi.py --init
 
 ```Python
 # build.jfdi
@@ -86,14 +90,9 @@ def clean(in_files):
 
 See [examples](examples/) for more use cases.
 
-## Changes ##
+## Changelog ##
 
- - *0.0.2*: September 2018: added `raw()` command to get a filename without extension.
- - *0.0.3*: November 2018:  `cmd()` now returns stdout as newline-trimmed utf-8 string instead of errorlevel
- - *0.0.4*: January 2018: `arm()` renamed `use()` to reduce confusion. All breaking changes scheduled for before 1.0.
- - `rm()` now works on str, list and iter inputs
- - `obj()` bugfix: on iter input returns list, as expected
- - `--var` cmdline now implicit; just pass `arg=value` pairs 
+Changes are described in [CHANGELOG.md](CHANGELOG.md).
 
 ### Versus Makefiles ###
 
@@ -110,6 +109,8 @@ JFDI offers a compact build-specific API.  You will type significantly less to g
 ### Versus Bash scripts ###
 
 Bash scripts make you use Unix paths on Windows, whereas you often call programs that use Windows paths.  Mixed path scripting is gross.  Bash also depends on cp, rm, chmod, chown and a battery of Unix commands to be available.  Getting a compliant Unix environment up and running is asking a Windows user to install around a gigabyte of exes.
+
+If you use bash files you have to explicitly check every command for errorlevel and exit on failure.  JFDI implicitly assumes your build fails when the compiler returns errors.
 
 JFDI offers a compact build-specific API.  You will type significantly less to get the same thing built.
 
@@ -150,7 +151,7 @@ Run `jfdi.py --init` to generate one.  Alternatively, read the code to `jfdi.py`
 
 # Known Limitations #
 
-This software has been in use for two years on the author's small projects.  It generally works well.  The issues on Github consist of all the known issues.
+This software has been in use for three years on the author's small projects.  The issues on Github consist of all the known issues.
 
 # Copyright and Credit #
 
