@@ -9,12 +9,6 @@ JFDI_VERSION = 1
 
 cfg = {'i': pth(".\\intermediates\\")}
 
-
-
-
-
-
-
 # called at the start of the build
 def start_build():
     global cfg
@@ -116,7 +110,7 @@ def end_build(in_files):
     # 
     # obj()'s second parameter adds a directory to each of the obj files.
     #
-    # This returns intermediates/hello.o, or intermediates/hello.obj on Windows
+    # This returns intermediates/hello.o, or intermediates\hello.obj on Windows
     obj_files = obj(in_files, cfg['i'])
 
     # run a shell command to link the binary

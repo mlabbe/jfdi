@@ -580,7 +580,9 @@ def _api_obj(path, in_prefix_path=''):
         split = os.path.splitext(p)
 
         filename = split[0] + ext
-        out_paths.append(filename)
+        path = os.path.join(prefix_path, filename)
+        
+        out_paths.append(path)
 
     return _list_single_to_str(out_paths)
     
