@@ -656,13 +656,20 @@ def _api_exp(in_str):
                 frame = sys._getframe(1)
                 if var in frame.f_locals:
                     val = frame.f_locals[var]
+                    
                 # scan vars second (command line override)                
                 elif var in _cfg['vars']:
+                    
                     val = _cfg['vars'][var]
+                # check environment variables, third
+                elif var in os.environ:
+                    val = os.environ[var]
+                    
                 # fall back to global vars
                 elif var in globals():
                     val = globals()[var]
                 else:
+                    
                     _fatal_error("exp(): var %s not found.\n" % var)
                     
             if val.__class__ == list:

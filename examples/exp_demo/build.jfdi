@@ -48,16 +48,37 @@ JFDI_VERSION = 1
 
 # called at the start of the build
 def start_build():
-    # arm with the clang compiler
+    # use the clang compiler.  This sets:
+    # CC, CXX, LD, OBJ, CCTYPE, CFLAGS, CCFLAGS and LDFLAGS to clang-friendly
+    # values.
+    #
+    # it also lets us call obj() if we we want
     use("clang")
 
     # after arming, CC is a variable in the global scope
     log("The global value CC is " + CC)
 
     # exp searches for $CC, first in vars passed in from the command line,
-    # and then from the global scope.
+    # then from environment variables, and then from the global scope.
     log(exp("CC is $CC"))
     # go ahead and run jfdi.py with jfdi.py CC=gcc and see the difference
+
+    # we can still get the environment variable using env(), of course.
+    log("CC is %s in the environment" % env(CC))
+
+    # now try running with CC=foo jfdi.py, passing it as an
+    # environment variable instead of an argument.  Notice how it still expands.
+    # output:
+    # > CC is foo
+
+    # in order to illustrate which takes precedence, try passing CC in as
+    # both a build argument and an environment variable with
+    # CC=foo jfdi.py CC=gcc
+    # output:
+    # > CC is gcc
+    #
+    # an explicit build argument supersedes whatever is set in the environment.
+    
 
     # CFLAGS is an empty list of compiler flags, also in the global scope.
     # When exp() expands a list, it returns a string with each element
