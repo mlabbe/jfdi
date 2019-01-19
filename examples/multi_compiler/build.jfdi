@@ -61,9 +61,7 @@ def build_this(in_path):
     # Don't worry about dir slash direction -- this is automatically
     # swapped by the host OS.
     obj_path = obj(in_path, cfg['i'])
-    if not new(in_path, obj_path):
-        return None
-
+    
     # Because we are pushing all intermediate files to a subdirectory,
     # we must tell the compiler where to put them.
     #

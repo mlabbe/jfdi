@@ -20,6 +20,7 @@ All breaking changes are scheduled for major version increases.
 ### Removed ###
 - `arm()` function no longer exists
 - `--var` cmdline now implicit; just pass `arg=value` pairs
+- `new()` removed; was not effective anyway
 
 ### Fixed ###
 - `obj()` iter input returns list, as expected

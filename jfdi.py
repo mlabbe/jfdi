@@ -194,7 +194,6 @@ def _add_api(g):
     g['arg'] = _api_arg
     g['obj'] = _api_obj
     g['var'] = _api_var
-    g['new'] = _api_new
     g['exe'] = _api_exe
     g['exp'] = _api_exp
     g['pth'] = _api_pth
@@ -390,7 +389,6 @@ available functions:
   raw(str)      - return file without extension (file.c = file)
   log(str)      - print to stdout
   mkd(str)      - make all subdirs
-  new(src,dst)  - true if file src is newer than file dst
   obj(str)      - return filename with obj file ext (file.c = file.obj)
   pth(str)      - swap path slashes -- \ on windows, / otherwise
   var(str,type) - get command line var passed in during build instantiation
@@ -659,17 +657,6 @@ def _api_var(key,type=str):
         return tval
     return ''
 
-def _api_new(src, dst):
-    if _cfg['args'].force:
-        return True
-    
-    if not os.path.exists(dst):
-        return True
-
-    src_mtime = os.path.getmtime(src)
-    dst_mtime = os.path.getmtime(dst)    
-    
-    return src_mtime > dst_mtime
 
 def _api_exe(path, append_if_debug=None):
     split = os.path.splitext(path)
