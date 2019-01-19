@@ -7,42 +7,6 @@
 #
 # NOTE:
 # if you do not have jfdi.py, run this script with python to get it.
-"""
-jfdi build script
-
-available functions:
-  cp(src, dst)  - copy a file or directory
-  rm(str)       - remove file or directory
-  arg(str)      - convert a /flag into a -flag depending on compiler
-  use('?')      - arm environment with make-like variables (LD, CC, etc.)
-  cmd(list|str) - run a command on a shell, fatal if error
-  die(str)      - fail build with a message, errorlevel 3
-  env(str)      - return environment variable or None
-  exe(str)      - return filename with exe extension based on TARGET_OS
-  exp(str)      - expand a $string, searching CLI --vars and then global scope
-  ext(str)      - return file extension (file.c = .c)
-  log(str)      - print to stdout
-  mkd(str)      - make all subdirs
-  new(src,dst)  - true if file src is newer than file dst
-  obj(str)      - return filename with obj file ext (file.c = file.obj)
-  pth(str)      - swap path slashes -- \ on windows, / otherwise
-  var(str,type) - get command line var passed in with --var or -V
-
-variables:
-  HOST_OS       - compiling machine OS    (str)
-  TARGET_OS     - target machine OS       (str)
-
-after use(), variables, where applicable:
-  CC            - c compiler
-  CXX           - c++ compiler
-  LD            - linker
-  OBJ           - obj extension (ex: 'obj')
-  CCTYPE        - compiler 
-  CFLAGS        - list of c flags
-  CXXFLAGS      - list of c++ flags
-  LDFLAGS       - list of linker flags
-  
-"""
 import os.path
 
 JFDI_VERSION = 1

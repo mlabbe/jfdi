@@ -5,43 +5,6 @@
 # /\__/ / |   | |/ / _| |_ 
 # \____/\_|   |___/  \___/ 
 #
-"""
-jfdi build script
-
-available functions:
-  log(str)      - print to stdout
-  cmd(list|str) - run a command on a shell, fatal if error
-  die(str)      - fail build with a message, errorlevel 3
-  env(str)      - return environment variable or None
-  obj(str)      - return filename with obj file ext (file.c = file.obj)
-  exe(str)      - return filename with exe extension based on TARGET_OS
-  ext(str)      - return file extension (file.c = .c)
-  exp(str)      - expand a $string, using all global vars
-  mkd(str)      - make all subdirs
-  use('?')      - arm environment with make-like variables (LD, CC, etc.)
-  arg(str)      - convert a /flag into a -flag depending on compiler
-  var(str,type) - get command line var passed in with --var or ''
-  pth(str)      - swap path slashes -- \ on windows, / otherwise
-  new(src,dst)  - true if file src is newer than file dst
-  cp(src, dst)  - copy a file or directory
-  rm(str)       - remove file or directory
-
-variables:
-  HOST_OS       - compiling machine OS    (str)
-  TARGET_OS     - target machine OS       (str)
-
-after use(), variables, where applicable:
-  CC            - c compiler
-  CXX           - c++ compiler
-  LD            - linker
-  OBJ           - obj extension (ex: 'obj')
-  CCTYPE        - compiler 
-  CFLAGS        - list of c flags
-  CXXFLAGS      - list of c++ flags
-  LDFLAGS       - list of linker flags
-  
-"""
-
 JFDI_VERSION = 1
 
 cfg = {'i': pth(".\\intermediates\\")}
