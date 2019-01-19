@@ -66,9 +66,15 @@ def _parse_args():
                    action='store_true')
     p.add_argument('-F', '--force', help='force rebuild -- new() always true',
                    action='store_true')
+    p.add_argument('-r', '--run', help='perform a canonical run of the program on successful build by calling run()',
+                   action='store_true')
                    
     args, unknown = p.parse_known_args()
     _cfg['args'] = args
+
+    if args.run and args.clean:
+        _warning("--clean and --run both specified; run ignored")
+        args.run = False
 
     # unknown arg parse sets variables 
     # some var facts:
@@ -282,6 +288,19 @@ def _build(context):
 
     context[0]['end_build'](input_files)
 
+    
+def _canonical_run(context):
+    # run() is ignored if -r/--run is not supplied
+    if not _cfg['args'].run:
+        return
+
+    # not an error to have this omitted in the build script; run() is optional
+    if 'run' not in context[0]:
+        return
+
+    _message(0, "performing a canonical run of the build product")
+    context[0]['run']()
+
 def _run_cmd(cmd):
     _message(0, cmd)
     exit_code = subprocess.call(cmd, shell=True)
@@ -387,7 +406,9 @@ def end_build(in_files):
 def clean(in_files):
     pass
 
-
+# called when the user requests a canonical run on successful build (optional)
+def run():
+    pass
     
 #
 # main -- installs build system if build script is run directly
@@ -587,39 +608,6 @@ def _api_obj(path, in_prefix_path=''):
     return _list_single_to_str(out_paths)
     
 
-def _api_obj_old(path, in_prefix_path=''):
-    prefix_path = _swap_slashes(in_prefix_path)
-    if 'CCTYPE' not in globals():
-        _fatal_error('you must call use() before calling obj()\n')
-
-    # FIXME: don't join this; it makes passing it to rm() impossible
-    #
-    # rm(obj(in_files)) should be a common use pattern.
-    if path.__class__ == list:
-        obj_str = ''
-        for p in path:
-            split = os.path.splitext(p)
-            if globals()['CCTYPE'] == 'msvc':
-                obj = '.obj'
-            elif globals()['CCTYPE'] == 'gcc':
-                obj = '.o'
-            file_str = '%s%s ' % (split[0], obj)
-            obj_str += os.path.join(prefix_path, file_str)
-        return obj_str
-
-    # str case
-    split = os.path.splitext(path)
-    
-    obj = ''
-    if globals()['CCTYPE'] == 'msvc':
-        obj = '.obj'
-    elif globals()['CCTYPE'] == 'gcc':
-        obj = '.o'
-
-    file_str = split[0] + obj
-    return os.path.join(prefix_path, file_str)
-    
-    
 
 def _api_var(key,type=str):
     global _cfg
@@ -736,6 +724,8 @@ if __name__ == '__main__':
     pycode = _get_script()
     context = _run_script(pycode)
     _build(context)
+
+    _canonical_run(context)
 
     _report_success(start_time)
     sys.exit(0)

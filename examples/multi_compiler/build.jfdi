@@ -127,9 +127,21 @@ def clean(in_files):
 
     # remove the executable that was built in the current configuration from
     # the current working directory.
+    #
+    # _d is a the suffix for a debug build
     rm(exe('hello.exe', '_d'))
 
 
+# called when the user requests a canonical run on successful build (optional)
+def run():
+    binary = exe('hello.exe', '_d')
+
+    # run the exe, logging the output to stdout
+    #
+    # if errorlevel != 0 (ie: the exe crashes),  jfdi
+    # will return the exe's errorlevel
+    log(cmd(binary))
+    
 
 #
 # main -- installs build system if build script is run directly
