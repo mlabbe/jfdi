@@ -6,11 +6,11 @@
      \____/\_|   |___/  \___/ 
 
 
-The build system for people who tolerate batch files and shell scripts for smaller projects.
+The build system for people who tolerate batch files and shell scripts for smaller projects.  Comfortable like an old shoe.
 
 ## Rationale ##
 
-Plenty of build systems aim to scale to large codebases.  They contain knowledge about your environment and aim to automate common tasks.  JFDI scales to the lowend.  It is scripting with helpers and hooks -- designed to let you script your own build logic so you can just get the thing built.  **JFDI.**
+Plenty of build systems aim to scale to large codebases.  They contain knowledge about your environment and aim to automate common tasks.  JFDI scales to the lowend.  It is scripting with helper functions -- designed to let you script your own build logic so you can just get the thing built.  **J. F. D. I.**
 
 ## Un-features ##
 
@@ -32,7 +32,7 @@ Plenty of build systems aim to scale to large codebases.  They contain knowledge
 - Automatically swaps dir slashes for easy x-platform scripting
 - Used by the author for a ton of small projects for 3 years and counting
 
-## Sample Script ##
+## Sample Auto-Generated Build Script ##
 
 This builds a multi-file C project with clang, putting build products in a `bin/` subdirectory.
 

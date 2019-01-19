@@ -28,9 +28,27 @@ import argparse
 import platform
 import subprocess
 
-VERSION=(0,4)
+VERSION=(0,0,4)
 
 _cfg = {}
+
+def _is_jfdi_compatible_with_build_script_version():
+    """is this version of jfdi.py compatible with the build format version?
+    The value is stored in JFDI_VERSION in the generated template.
+
+    None return value means it's compatible"""
+    script_version = int(globals()['JFDI_VERSION'])
+    
+    if script_version == 1:
+        return None
+    
+    elif script_version > 1:
+        return " is too old for build script JFDI_VERSION %d" % (script_version)
+    
+    elif script_version < 1:
+        return " is too new for build script JFDI_VERSION %s" % (script_version)
+
+        
 
 def _parse_args():
     global cfg
@@ -82,6 +100,10 @@ def _which(file):
         if os.path.exists(os.path.join(path, file)):
             return os.path.join(path, file)
     return None
+
+def _pp_version():
+    """pretty print version as a string"""
+    return '.'.join(str(i) for i in VERSION)
 
 def _message(verbosity, in_msg):
     global cfg
@@ -172,16 +194,29 @@ def _run_script(pycode):
     exec(pycode, g)
     globals()['__name__'] = push_name
 
+    #
     # validate expected functions
+    #
     
     # todo: fill this out
     missing_msg = ""
     if 'list_input_files' not in g:
         missing_msg += "list_input_files() must exist\n"
 
+    if 'JFDI_VERSION' not in g:
+        missing_msg += "JFDI_VERSION must exist in build script\n"
+
     if len(missing_msg) != 0:
         sys.stderr.write("errors were found during execution:\n")
         _fatal_error(missing_msg)
+
+    #
+    # validate version compatibility
+    #
+    error_result = _is_jfdi_compatible_with_build_script_version()
+    if error_result != None:
+        _fatal_error("JFDI %s%s\n" % (_pp_version(), error_result))
+        
     
     context = [globals()]
     return context
