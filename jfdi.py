@@ -30,6 +30,8 @@ import subprocess
 
 VERSION=(0,0,4)
 
+g_start_time = time.time()
+
 _cfg = {}
 
 def _is_jfdi_compatible_with_build_script_version():
@@ -121,12 +123,13 @@ def _message(verbosity, in_msg):
         
     if verbosity >= 1 and not _cfg['args'].verbose:
         return
-    print(msg)
+    print("%s %s" % (_log_stamp(), msg))
 
 def _warning(msg):
-    sys.stderr.write("warning: " + msg)
+    sys.stderr.write("%s WARNING: %s" % (_log_stamp(), msg))
 
 def _fatal_error(msg, error_code=1):
+    sys.stderr.write(_log_stamp() + ' ')
     sys.stderr.write(msg)
     sys.stderr.write("exiting with error code %d\n" % error_code)
     sys.exit(error_code)
@@ -328,6 +331,25 @@ def _list_single_to_str(val):
         return val[0]
     else:
         return val
+
+
+def _log_stamp():
+    # strategy is to format in milliseconds until the build time
+    # gets long, then format in terms of seconds.
+    
+    justify_chars = 6
+    cur_time = time.time()
+
+    d_ms = int((cur_time - g_start_time) * 1000)
+
+    if d_ms < 1000:
+        return "[%s ms]" % str(d_ms).rjust(justify_chars-2)
+    else:
+        d_s = cur_time - g_start_time
+
+        num = "%.1f" % d_s
+        return "[%ss]" % num.rjust(justify_chars)
+    
         
 def generate_tmpl(path):
     if os.path.exists(path):
@@ -455,7 +477,11 @@ def _api_raw(x):
     return os.path.splitext(x)[0]
 
 def _api_log(msg):
-    print("log:\t%s" % msg)
+    frame = sys._getframe(1)
+    func_name = frame.f_code.co_name
+    
+    
+    print("%s %s(): %s" % (_log_stamp(), func_name, msg))
 
 def _api_mkd(dirs):
     dirs = _swap_slashes(dirs)
@@ -714,7 +740,7 @@ def _api_pth(path):
 #
 
 if __name__ == '__main__':
-    start_time = time.time()
+
     args = _parse_args()
 
     if args.init:
@@ -727,6 +753,6 @@ if __name__ == '__main__':
 
     _canonical_run(context)
 
-    _report_success(start_time)
+    _report_success(g_start_time)
     sys.exit(0)
 
