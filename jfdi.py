@@ -55,7 +55,7 @@ def _is_jfdi_compatible_with_build_script_version():
 def _parse_args():
     global cfg
 
-    desc = "JFDI Simple Build System version %d.%d" % (VERSION[0], VERSION[1])
+    desc = "JFDI Simple Build System version %s" % (_pp_version())
     p = argparse.ArgumentParser(description=desc,
                                 usage="%(prog)s [options] [var=value ...]")
     p.add_argument('-v', '--verbose', help="increase verbosity",
@@ -70,6 +70,8 @@ def _parse_args():
                    action='store_true')
     p.add_argument('-r', '--run', help='perform a canonical run of the program on successful build by calling run()',
                    action='store_true')
+    p.add_argument('--version', help='print jfdi version to stdout and exit',
+                   action='store_true')
                    
     args, unknown = p.parse_known_args()
     _cfg['args'] = args
@@ -77,6 +79,10 @@ def _parse_args():
     if args.run and args.clean:
         _warning("--clean and --run both specified; run ignored")
         args.run = False
+
+    if args.version:
+        print(_pp_version())
+        sys.exit(0)
 
     # unknown arg parse sets variables 
     # some var facts:
