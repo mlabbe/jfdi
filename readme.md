@@ -23,14 +23,23 @@ Plenty of build systems aim to scale to large codebases.  They contain knowledge
 
 - Just code your build in portable Python using functions designed to make building convenient
 - Self-propagating: end-user runs the build script directly to download the jfdi build system
+- Standalone win32 exe: Your Windows users don't even need a Python install.
+- Portable build scripts that work anywhere Python runs
 - Tested and nurtured to life on Linux, Macos and Windows with GCC, Clang and MSVC support
 - First class support for non-compiler building (LaTeX, shaders, etc.)
-- Build system will always be one small Python file with no dependencies other than Python
-- Provides a small API to simplify build tasks; much less wordy than stock Python libraries
+- Build system will always be one small Python file with no third party dependencies.
+- Provides a small API to simplify build tasks; much less typing than stock Python libraries
 - Generate a self-documented build template to get started with `--init`
-- Portable build scripts that work anywhere Python runs
 - Automatically swaps dir slashes for easy x-platform scripting
-- Used by the author for a ton of small projects for 3 years and counting
+- Used by the author for a ton of small projects for three years and counting
+
+## Installation ##
+
+*Windows*: Download a standalone exe from releases and put it in your `PATH`.  Alternatively, run `python jfdi.py <args>` with your preinstalled Python interpreter.
+
+*Linux and Mac*: `chmod +x` `jfdi.py` and copy it to `/usr/local/bin`
+
+JFDI has zero third party Python dependencies and is a single file standalone program.  The master branch of the [official github repo](https://github.com/mlabbe/jfdi) is always stable.
 
 ## Sample Auto-Generated Build Script ##
 
@@ -90,9 +99,34 @@ def clean(in_files):
 
 See [examples](examples/) for more use cases.
 
+
+## Documentation ##
+
+1. `jfdi --init` creates a build file which contains documentation in comments.
+2. See [examples](examples/) for specific usage examples.
+3. Questions or suggestions? Post an issue on the official Github repo.
+4. Read the code to `jfdi.py`'s \_api\_* functions.  It is not deeply nested and easy to read. Try it out!
+
+## Usage ##
+
+    jfdi.py --init           # create build.jfdi in cwd
+    emacs build.jfdi         # edit self-documenting build script
+    jfdi.py                  # run build.jfdi in cwd, building your program
+
+### Extended Usage ###
+
+    jfdi.py DEBUG=1          # pass build variable DEBUG to build script, var('DEBUG') returns 1
+    jfdi.py -c               # call build.jfdi clean() which cleans up the build
+    jfdi.py -r               # build normally, then call run(), which performs a canonical run
+                             # of the build product
+
+See also: [examples](examples/)
+
 ## Changelog ##
 
 Changes are described in [CHANGELOG.md](CHANGELOG.md).
+
+# Why JFDI? #
 
 ### Versus Makefiles ###
 
@@ -132,23 +166,6 @@ SCons is not widely installed. Therefore, if you distribute your software, you a
 
 SCons is a good candidate to upgrade to if your project becomes too large for JFDI.  The author uses it to build production code for a 200 file codebase.
 
-## Usage ##
-
-    jfdi.py --init           # create build.jfdi in cwd
-    emacs build.jfdi         # edit self-documenting build script
-    jfdi.py                  # run build.jfdi in cwd, building your program
-
-### Extended Usage ###
-
-    jfdi.py DEBUG=1          # pass build variable DEBUG to build script, var('DEBUG') returns 1
-
-See also: [examples](examples/)
-
-## Documentation ##
-
-API documentation is generated and included in every build script.
-Run `jfdi.py --init` to generate one.  Alternatively, read the code to `jfdi.py`'s \_api\_* functions.  It has a very shallow call graph with no dependencies and is easy to read.
-
 # Known Limitations #
 
 This software has been in use for three years on the author's small projects.  The issues on Github consist of all the known issues.
@@ -157,7 +174,7 @@ This software has been in use for three years on the author's small projects.  T
 
 Copyright &copy; 2016-2019 Frogtoss Games, Inc.  File [LICENSE](LICENSE) covers all files in this repo.
 
-JFDI by Michael Labbe. <mike@frogtoss.com>
+JFDI by Michael Labbe. <contact@frogtoss.com>
 
 ## Support ##
 
