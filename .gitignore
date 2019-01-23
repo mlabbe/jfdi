@@ -67,3 +67,7 @@ target/
 # jfdi-specific
 test_file_*
 hello.exe
+
+# example/test file byproducts
+*.o
+*.obj
