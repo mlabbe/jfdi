@@ -10,14 +10,18 @@ The build system for people who tolerate batch files and shell scripts for small
 
 ## Rationale ##
 
-Plenty of build systems aim to scale to large codebases.  They contain knowledge about your environment and aim to automate common tasks.  JFDI scales to the lowend.  It is scripting with helper functions -- designed to let you script your own build logic so you can just get the thing built.  **J. F. D. I.**
+JFDI scales *down* to tiny codebases. It is portable build scripting with helper functions -- designed to let you assemble your own build logic so you can just get the thing built.  **J. F. D. I.**
+
+JFDI is trivial to distribute to end users of your code.
+
+See "Why JFDI?" below for a comparison with alternatives.
 
 ## Un-features ##
 
 - Designed to scale to the small-end only
 - Not destined to be fast for managing large builds
 - Not the author's big idea of a perfect build system
-- No definition format to learn, just code in Python with a batchy api
+- No definition format to learn, just code in Python with a helpful, optional api
 
 ## Features ##
 
@@ -31,11 +35,11 @@ Plenty of build systems aim to scale to large codebases.  They contain knowledge
 - Provides a small API to simplify build tasks; much less typing than stock Python libraries
 - Generate a self-documented build template to get started with `--init`
 - Automatically swaps dir slashes for easy x-platform scripting
-- Used by the author for a ton of small projects for three years and counting
+- Used by the author for a handful of small projects for three years and counting
 
 ## Installation ##
 
-*Windows*: Download a standalone exe from the Github releases tab and unzip it to your `PATH`.  Alternatively, run `python jfdi.py <args>` with your preinstalled Python interpreter.
+*Windows*: Download a standalone exe from the Github releases tab and unzip it to your `PATH`.  Alternatively, run `python jfdi.py <args>` with your preinstalled Python 3 interpreter.
 
 *Linux and Mac*:
 
@@ -48,9 +52,6 @@ JFDI has zero third party Python dependencies and is a single file standalone pr
 ## Sample Auto-Generated Build Script ##
 
 This builds a multi-file C project with clang, putting build products in a `bin/` subdirectory.
-
-    # get the latest stable jfdi
-    wget https://raw.githubusercontent.com/mlabbe/jfdi/master/jfdi.py
 
     # generate template build file build.jfdi
     jfdi.py --init
@@ -134,7 +135,7 @@ Changes are described in [CHANGELOG.md](CHANGELOG.md).
 
 ### Versus Makefiles ###
 
-JFDI is meant for tiny projects.  It does not have a dependency graph and it does not support incremental building.
+JFDI is meant for tiny projects.  It does not have a dependency graph and it does not support incremental building.  If you desire this, your project is not tiny and you should use something else.
 
 On Windows, GNU Make brings in a Unix runtime (via Cygwin, MSYS2, etc.) which can take up a gigabyte. Furthermore, it handles fork() poorly and whether it uses Unix paths is install-dependent.  The official GNU Make binary is over a decade old and does not work on modern Windows.
 
@@ -177,6 +178,8 @@ This is a blessing and a curse: if SCons knows about your build environment, you
 SCons is not widely installed. Therefore, if you distribute your software, you are asking all of your users to install it and an outdated version of Python on their machines just to build your small program.  JFDI is also not widely installed, but it self propagates and does not need to be installed at the operating system level.  A user simply needs to run the `build.jfdi` script directly to retrieve the latest version.
 
 # Known Limitations #
+
+By design, JFDI has no dependency graph.  Every file in your project is re-processed when the build script is re-run.
 
 This software has been in use for three years on the author's small projects.  The issues on Github consist of all the known issues.
 
