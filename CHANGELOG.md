@@ -10,6 +10,7 @@ All breaking changes are scheduled for major version increases.
 ### Added ###
 - `rm()` now works on list and iter inputs in addition to str
 - new, optional `run()` function in build script which executes the build product when `--run` is specified
+- pyinstaller now produces standalone jfdi.exe for distribution on Windows
 
 ### Changed ###
 - `arm()` renamed `use()` to reduce confusion. (All breaking changes scheduled for before 1.0.)

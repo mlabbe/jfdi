@@ -5,13 +5,13 @@ __pycache__/
 
 # C extensions
 *.so
+*.pdb
 
 # Distribution / packaging
 .Python
 env/
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
@@ -67,3 +67,4 @@ target/
 # jfdi-specific
 test_file_*
 hello.exe
+jfdi.exe

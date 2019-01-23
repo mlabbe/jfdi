@@ -16,6 +16,8 @@
 import sys
 if sys.version_info[0] < 3:
     sys.stderr.write('JFDI requires Python 3\n')
+    sys.stderr.write('Alternatively: Official github repo offers standalone exes for windows')
+    sys.stderr.write('https://github.com/mlabbe/jfdi')
     sys.exit(1)
 
 import os
@@ -58,20 +60,18 @@ def _parse_args():
     desc = "JFDI Simple Build System version %s" % (_pp_version())
     p = argparse.ArgumentParser(description=desc,
                                 usage="%(prog)s [options] [var=value ...]")
-    p.add_argument('-v', '--verbose', help="increase verbosity",
-                   action='store_true')
-    p.add_argument('-f', '--file', help='read FILE as build.jfdi')
-    p.add_argument('-c', '--clean', help="clean the build and exit",
-                   action='store_true')
-    p.add_argument('--target-os', help='specify TARGET_OS for cross compiling')
     p.add_argument('--init', help="create new build.jfdi file in CWD",
                    action='store_true')
-    p.add_argument('-F', '--force', help='force rebuild -- new() always true',
+    p.add_argument('-v', '--verbose', help="increase log verbosity",
                    action='store_true')
-    p.add_argument('-r', '--run', help='perform a canonical run of the program on successful build by calling run()',
+    p.add_argument('-c', '--clean', help="call clean() and exit",
+                   action='store_true')
+    p.add_argument('-r', '--run', help='call run() after successful build',
                    action='store_true')
     p.add_argument('--version', help='print jfdi version to stdout and exit',
                    action='store_true')
+    p.add_argument('-f', '--file', help='read FILE as build.jfdi')
+    p.add_argument('--target-os', help='specify TARGET_OS for cross compiling')
                    
     args, unknown = p.parse_known_args()
     _cfg['args'] = args
@@ -154,7 +154,7 @@ def _get_script():
 
     if script_path == None or not os.path.exists(script_path):
         fatal_msg =  "Build file not found\n"
-        fatal_msg += "If starting from scratch, use %s --init\n" \
+        fatal_msg += "\nIf this is your first run, use %s --init\n" \
                      % sys.argv[0]
         fatal_msg += "%s --help for detailed help.\n\n" \
                      % sys.argv[0]
