@@ -50,8 +50,8 @@ JFDI_VERSION = 1
 
 # called at the start of the build
 def start_build():
-    ls = cmd("ls asdf")
-    print(ls)
+    ls = cmd('ls -l /')
+    log(ls)
 
 # return a list of files
 def list_input_files():

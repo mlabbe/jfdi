@@ -68,3 +68,7 @@ target/
 test_file_*
 hello.exe
 jfdi.exe
+
+# example/test file byproducts
+*.o
+*.obj

@@ -1,4 +1,4 @@
-#    _______________ _____ 
+#    _______________ _____
 #   |_  |  ___|  _  \_   _|
 #     | | |_  | | | | | |  
 #     | |  _| | | | | | |  
@@ -57,7 +57,7 @@ def end_build(in_files):
     objs = obj(in_files, "bin")
 
     # cmd runs the linker
-    cmd(exp("$LD $LDFLAGS " + objs + "-o bin/hello"))
+    cmd(exp("$LD $LDFLAGS $objs -o bin/hello"))
     
 
 # called when the user requests --clean
