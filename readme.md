@@ -35,9 +35,13 @@ Plenty of build systems aim to scale to large codebases.  They contain knowledge
 
 ## Installation ##
 
-*Windows*: Download a standalone exe from releases and put it in your `PATH`.  Alternatively, run `python jfdi.py <args>` with your preinstalled Python interpreter.
+*Windows*: Download a standalone exe from the Github releases tab and unzip it to your `PATH`.  Alternatively, run `python jfdi.py <args>` with your preinstalled Python interpreter.
 
-*Linux and Mac*: `chmod +x` `jfdi.py` and copy it to `/usr/local/bin`
+*Linux and Mac*:
+
+    wget https://raw.githubusercontent.com/mlabbe/jfdi/master/jfdi.py && \
+    chmod +x jfdi.py && \
+    sudo mv jfdi.py /usr/local/bin/jfdi
 
 JFDI has zero third party Python dependencies and is a single file standalone program.  The master branch of the [official github repo](https://github.com/mlabbe/jfdi) is always stable.
 
@@ -130,9 +134,13 @@ Changes are described in [CHANGELOG.md](CHANGELOG.md).
 
 ### Versus Makefiles ###
 
+JFDI is meant for tiny projects.  It does not have a dependency graph and it does not support incremental building.
+
 On Windows, GNU Make brings in a Unix runtime (via Cygwin, MSYS2, etc.) which can take up a gigabyte. Furthermore, it handles fork() poorly and whether it uses Unix paths is install-dependent.  The official GNU Make binary is over a decade old and does not work on modern Windows.
 
 GNU Make is, arguably, overkill for smaller projects.
+
+JFDI is a standalone script or executable capable of performing shell-like commands portably.  Thanks to Python's extensive standard library, this includes things like recursively creating directories and zipping up files.
 
 ### Versus Batch Files ###
 
@@ -150,21 +158,23 @@ JFDI offers a compact build-specific API.  You will type significantly less to g
 
 ### Versus Visual Studio Project files ###
 
-SLN files integrate with Visual Studio which has a debugger, so you should use that if you value that closely knit integration.  However, setting up a project that links against other libraries and has include directories is tedious.  If you have multiple projects with similar configuration needs, JFDI lets you build them all without additional overhead.
+SLN files integrate with Visual Studio which has a debugger, so you should use that if you value that closely knit integration.
 
 SLN files are mostly only forwards compatible.  JFDI lets people with earlier Visual Studio versions than you compile your code.
 
 SLN files will never build on Linux or Macos, but JFDI does.  See the [multi-compiler example](examples/multi_compiler/).
 
+SLN files are unspeakably inappropriate for tasks outside of traditional compiling like building a LaTeX book.  JFDI is a better fit for non-code compilation building.
+
 ### Versus SCons ###
 
-[SCons](http://scons.org) is a fully featured Python-based software construction tool.  It must be installed in your operating system and forces you to keep the older Python 2 around (whereas JFDI is based on Python 3).  Unlike JFDI, it has deep knowledge about various compilers and imposes conventions through its environment model.
+[SCons](http://scons.org) is a fully featured Python-based software construction tool.  It must be installed on your operating system.  In contrast, JFDI is a standalone exe or script that can be easily downloaded or distributed.
 
-This is a blessing and a curse: if SCons knows about your build environment, you are in luck and can build quickly.  If it does not, adding support for it is involved and poorly documented.  In contrast, JFDI barely knows anything about your toolchain, expecting you to expressly support it using a very simple API.
+Scons, unlike JFDI, has deep knowledge about various compilers and imposes conventions through its environment model.  Modifying it to do something it previously did not is often not worth the effort.
+
+This is a blessing and a curse: if SCons knows about your build environment, you are in luck and can build quickly.  If it does not, adding support for it is involved and poorly documented.  In contrast, JFDI barely possesses any conventions that enforce a toolchain, expecting you to expressly support it using a very simple API.
 
 SCons is not widely installed. Therefore, if you distribute your software, you are asking all of your users to install it and an outdated version of Python on their machines just to build your small program.  JFDI is also not widely installed, but it self propagates and does not need to be installed at the operating system level.  A user simply needs to run the `build.jfdi` script directly to retrieve the latest version.
-
-SCons is a good candidate to upgrade to if your project becomes too large for JFDI.  The author uses it to build production code for a 200 file codebase.
 
 # Known Limitations #
 
