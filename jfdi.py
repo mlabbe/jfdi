@@ -11,7 +11,9 @@
 
 # todo:
 # - handle OSError could not rmdir because a dos prompt is in it
-# - JFDI_VERSION in generated script does not match VERSION here
+
+_cfg = {'verbose': False,
+        'build_vars': {} }
 
 import sys
 if sys.version_info[0] < 3:
@@ -30,11 +32,9 @@ import argparse
 import platform
 import subprocess
 
-VERSION=(0,0,4)
+VERSION=(0,1,0)
 
 g_start_time = time.time()
-
-_cfg = {}
 
 def _is_jfdi_compatible_with_build_script_version():
     """is this version of jfdi.py compatible with the build format version?
@@ -52,62 +52,153 @@ def _is_jfdi_compatible_with_build_script_version():
     elif script_version < 1:
         return " is too new for build script JFDI_VERSION %s" % (script_version)
 
+    
+class _ArgDispatch:
+    """subcommand-based argument processing.  ie:
+    jfdi init  [args, options]
+    jfdi clean [args, options]
+    jfdi build [args, options]
+
+    Also supports implicit subcommand for build:
+    jfdi [args, options]
+    """
+    
+    def exec(self):
+        desc = "JFDI Simple Build System version %s" % (_pp_version())
+        p = argparse.ArgumentParser(
+            description=desc,
+            usage="%(prog)s <subcommand> [options] [buildvar=value ...]") # todo: examples here
+
+        # todo: document subcommands
+        p.add_argument('subcommand', help='Subcommand to run',
+                       nargs='?',
+                       default='build')
+        top_args = p.parse_args(sys.argv[1:2])
+
+        # default to 'build' if no subcommand is specified
+        if not hasattr(self, 'subcommand_'+top_args.subcommand):
+            _fatal_error("unknown subcommand %s.\n" % top_args.subcommand +
+                         "Use --help for detailed help")
+
+        # call method named after command.  if it returns at all, return a tuple:
+        #
+        # [0]: subcommand (implicit build is made explicit)
+        # [1]: args namespace for subcommand
+        # [2]: build vars dictionary
+        #
+        # callers are responsible for 1&2
+        sub_args, build_vars = getattr(self, 'subcommand_'+top_args.subcommand)()
+
+        # adjust global config from sub args
+        global _cfg
+        _cfg['verbose'] = sub_args.verbose
+        _cfg['build_vars'] = build_vars
+        
+        return (top_args.subcommand, sub_args, build_vars)
+
+    
+    @staticmethod
+    def _add_common_args(p):
+        """add args common to all subcommands
+        """
+        p.add_argument('-f', '--file',
+                       help='read FILE as build.jfdi',
+                       default='build.jfdi')
+
+        p.add_argument('-v', '--verbose',
+                       help="increase log verbosity",
+                       action='store_true')
+
+        p.add_argument('--target-os',
+                       help='specify TARGET_OS for cross compiling',
+                       default=platform.system())
+        
+        return p
+        
+    
+    @staticmethod
+    def _parse_build_vars(unknown_args):
+        """build vars are KEY=value variables that are passed on the command
+        line.  parse them out of unknown args from parse_known_args
+        and return a dict.
+        """
+        # unknown arg parse sets variables 
+        # some var facts:
+        #  - case insensitive
+        #  - accessed with var(key, type), where type can be bool, int, str
+        #  - if no equals sign, then default to int(1) for value
+        vars = {}
+        for v in unknown_args:
+            var = v.split('=', 1)
+            
+            # all vars are uppercase
+            ukey = var[0].upper()
+
+            if len(var) == 2:
+                vars[ukey] = var[1]
+            else:
+                vars[ukey] = 1
+
+        return vars
         
 
-def _parse_args():
-    global cfg
+    def subcommand_init(self):
+        p = argparse.ArgumentParser(
+            description='init creates a new build.jfdi in the working directory'
+        )
 
-    desc = "JFDI Simple Build System version %s" % (_pp_version())
-    p = argparse.ArgumentParser(description=desc,
-                                usage="%(prog)s [options] [var=value ...]")
-    p.add_argument('--init', help="create new build.jfdi file in CWD",
-                   action='store_true')
-    p.add_argument('-v', '--verbose', help="increase log verbosity",
-                   action='store_true')
-    p.add_argument('-c', '--clean', help="call clean() and exit",
-                   action='store_true')
-    p.add_argument('-r', '--run', help='call run() after successful build',
-                   action='store_true')
-    p.add_argument('--version', help='print jfdi version to stdout and exit',
-                   action='store_true')
-    p.add_argument('-f', '--file', help='read FILE as build.jfdi')
-    p.add_argument('--target-os', help='specify TARGET_OS for cross compiling')
-                   
-    args, unknown = p.parse_known_args()
-    _cfg['args'] = args
+        p = self._add_common_args(p)
 
-    if args.run and args.clean:
-        _warning("--clean and --run both specified; run ignored")
-        args.run = False
+        sub_args = p.parse_args(sys.argv[2:])
 
-    if args.version:
-        print(_pp_version())
-        sys.exit(0)
+        return sub_args, {} # no build vars
+        
 
-    # unknown arg parse sets variables 
-    # some var facts:
-    #  - case insensitive
-    #  - accessed with var(key, type), where type can be bool, int, str
-    #  - if no equals sign, then default to int(1) for value
-    vars = {}
-    for v in unknown:
-        var = v.split('=', 1)
+    def subcommand_clean(self): 
+       
+        p = argparse.ArgumentParser(
+            description='clean intermediate and build product files by calling clean() in build.jfdi',
+            # todo: improve usage
+        )
 
-        # all vars are uppercase
-        ukey = var[0].upper()
+        p = self._add_common_args(p)
+        
+        sub_args, unknown_args = p.parse_known_args(sys.argv[2:])
+        build_vars = self._parse_build_vars(unknown_args)
 
-        if len(var) == 2:
-            vars[ukey] = var[1]
-        else:
-            vars[ukey] = 1
+        return sub_args, build_vars
 
-    if _cfg['args'].verbose:
-        for v in vars:
-            print("build var %s = %s" % (v, vars[v]))
+    
+    def subcommand_build(self):
 
-    _cfg['vars'] = vars
+        p = argparse.ArgumentParser(
+            description="build the program by executing build.jfdi"
+        )
 
-    return args
+        p = self._add_common_args(p)
+        
+        p.add_argument('-r', '--run', help='call run() after successful build',
+                       action='store_true')
+
+        sub_args, unknown_args = p.parse_known_args(sys.argv[2:])
+        build_vars = self._parse_build_vars(unknown_args)
+
+        return sub_args, build_vars
+
+    
+    def subcommand_run(self):
+
+        p = argparse.ArgumentParser(
+            description="perform a canonical run of the program by calling run() in build.jfdi",
+        )
+
+        p = self._add_common_args(p)
+
+        sub_args, unknown_args = p.parse_known_args(sys.argv[2:])
+        build_vars = self._parse_build_vars(unknown_args)
+
+        return sub_args, build_vars
+
 
 def _which(file):
     for path in os.environ["PATH"].split(os.pathsep):
@@ -119,15 +210,26 @@ def _pp_version():
     """pretty print version as a string"""
     return '.'.join(str(i) for i in VERSION)
 
-def _message(verbosity, in_msg):
-    global cfg
+def _clean(context):
+    _message(1, "cleaning")    
+    input_files = context[0]['list_input_files']()
+    input_files = _handle_input_files(input_files)
+    
+    context[0]['clean'](input_files)
+    # returning from clean means the calling script did not die(), and so
+    # it was a success.
+    
 
+
+def _message(verbosity, in_msg):
+    global _cfg
+    
     if in_msg.__class__ == list:
         msg = ' '.join(in_msg)
     else:
         msg = in_msg
         
-    if verbosity >= 1 and not _cfg['args'].verbose:
+    if verbosity >= 1 and not _cfg['verbose']:
         return
     print("%s %s" % (_log_stamp(), msg))
 
@@ -135,33 +237,35 @@ def _warning(msg):
     sys.stderr.write("%s WARNING: %s" % (_log_stamp(), msg))
 
 def _fatal_error(msg, error_code=1):
-    sys.stderr.write(_log_stamp() + ' ')
+    sys.stderr.write(_log_stamp() + ' FATAL: ')
     sys.stderr.write(msg)
     sys.stderr.write("exiting with error code %d\n" % error_code)
     sys.exit(error_code)
 
-def _get_script():
+def _get_script(args_file):
     """compiled contents of script or error out"""
     DEFAULT_SCRIPT = 'build.jfdi'
 
     script_path = None
+    if args_file != None:
+        script_path = args_file
+    elif os.path.exists(DEFAULT_SCRIPT):
+        script_path = DEFAULT_SCRIPT
+        
+    script_path = None
     if os.path.exists(DEFAULT_SCRIPT):
         script_path = DEFAULT_SCRIPT
 
-    global _cfg
-    if _cfg['args'].file:
-        script_path = _cfg['args'].file
+    if args_file != None:
+        script_path = args_file
 
-    if script_path == None or not os.path.exists(script_path):
+    if script_path == None:
         fatal_msg =  "Build file not found\n"
         fatal_msg += "\nIf this is your first run, use %s --init\n" \
                      % sys.argv[0]
         fatal_msg += "%s --help for detailed help.\n\n" \
                      % sys.argv[0]
         _fatal_error(fatal_msg)
-
-    _cfg['script_path'] = script_path
-    _cfg['script_mtime'] = os.path.getmtime(script_path)
 
     with open(script_path) as f:
         script = f.read()
@@ -251,34 +355,13 @@ def _handle_input_files(input_files):
 
     return out_paths
 
-# deprecated
-def _handle_str_input_files_old(input_files):
-    out_files = []
-    if '*' in input_files:
-        wildcard = glob.glob(input_files)
-        for path in wildcard:
-            if os.path.isfile(path):
-                out_files.append(path)
-    else:
-        out_files.append(input_files)
 
-    return out_files
-    
-
-
-def _build(context):
-    global _cfg
+def _build(context, target_os):
     globals()['HOST_OS'] = platform.system()
-    globals()['TARGET_OS'] = platform.system()
-    if _cfg['args'].target_os:
-        globals()['TARGET_OS'] = _cfg['args'].target_os
+    globals()['TARGET_OS'] = target_os
         
     input_files = context[0]['list_input_files']()
     input_files = _handle_input_files(input_files)
-    if _cfg['args'].clean:
-        _message(1, "cleaning")
-        context[0]['clean'](input_files)
-        sys.exit(0)
 
     context[0]['start_build']()
         
@@ -298,15 +381,11 @@ def _build(context):
 
     
 def _canonical_run(context):
-    # run() is ignored if -r/--run is not supplied
-    if not _cfg['args'].run:
-        return
-
     # not an error to have this omitted in the build script; run() is optional
     if 'run' not in context[0]:
         return
 
-    _message(0, "performing a canonical run of the build product")
+    _message(1, "performing a canonical run of the build product")
     context[0]['run']()
 
 def _run_cmd(cmd):
@@ -319,7 +398,7 @@ def _run_cmd(cmd):
 def _report_success(start_time):
     end_time = time.time()
     delta_time = end_time - start_time
-    _message(0, "success in %.1f seconds." % delta_time)
+    _message(0, "exiting with success in %.1f seconds." % delta_time)
 
 def _str_to_list(val):
     """If val is str, return list with single entry, else return as-is."""
@@ -643,8 +722,8 @@ def _api_var(key,type=str):
     global _cfg
 
     ukey = key.upper()
-    if ukey in _cfg['vars']:
-        val = _cfg['vars'][ukey]
+    if ukey in _cfg['build_vars']:
+        val = _cfg['build_vars'][ukey]
 
         # workaround: string 0 would be true
         if type == bool and val == '0':
@@ -702,9 +781,9 @@ def _api_exp(in_str):
                     val = frame.f_locals[var]
                     
                 # scan vars second (command line override)                
-                elif var in _cfg['vars']:
+                elif var in _cfg['build_vars']:
                     
-                    val = _cfg['vars'][var]
+                    val = _cfg['build_vars'][var]
                 # check environment variables, third
                 elif var in os.environ:
                     val = os.environ[var]
@@ -727,6 +806,7 @@ def _api_exp(in_str):
 
 def _api_pth(path):
     return _swap_slashes(path)
+
         
 #
 # main
@@ -734,17 +814,42 @@ def _api_pth(path):
 
 if __name__ == '__main__':
 
-    args = _parse_args()
+    dispatch = _ArgDispatch()
+    subcommand, args, build_vars = dispatch.exec()
 
-    if args.init:
-        generate_tmpl('build.jfdi')
+
+    #
+    # subcommand init
+    #
+    if subcommand == 'init':
+        generate_tmpl(args.file)
+        _message(1, 'wrote %s' % args.file)
+        _report_success(g_start_time)
         sys.exit(0)
     
-    pycode = _get_script()
+    # all subcommands not handled yet require execution of the build script.
+    pycode = _get_script(args.file)
     context = _run_script(pycode)
-    _build(context)
 
-    _canonical_run(context)
+    if subcommand == 'clean':
+        #
+        # subcommand clean
+        #
+        _clean(context)
+
+    elif subcommand == 'run':
+        #
+        # subcommand run
+        #
+        _canonical_run(context)
+
+    else:
+        #
+        # subcommand build (default)
+        #
+        _build(context, args.target_os)
+        if args.run:
+            _canonical_run(context)
 
     _report_success(g_start_time)
     sys.exit(0)

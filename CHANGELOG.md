@@ -6,6 +6,13 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 All breaking changes are scheduled for major version increases.
 
+## [0.1.0] - January 2019 ##
+### Added ###
+- Added new `jfdi run` command to just call `run()` and exit.
+
+### Changed ###
+- Command line handling now has subcommands similar to git.  `jfdi --init` is now `jfdi init`.
+
 ## [0.0.4] - January 2019 ##
 ### Added ###
 - `rm()` now works on list and iter inputs in addition to str
