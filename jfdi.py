@@ -62,15 +62,27 @@ class _ArgDispatch:
     Also supports implicit subcommand for build:
     jfdi [args, options]
     """
-    
-    def exec(self):
+    def dispatch(self):
         desc = "JFDI Simple Build System version %s" % (_pp_version())
         p = argparse.ArgumentParser(
             description=desc,
-            usage="%(prog)s <subcommand> [options] [buildvar=value ...]") # todo: examples here
+            usage='''%(prog)s <subcommand> [options] [buildvar=value ...]
 
-        # todo: document subcommands
-        p.add_argument('subcommand', help='Subcommand to run',
+The most commonly used jfdi subcommands are:
+
+    {jfdi} init    # create new build.jfdi from template
+    {jfdi} build   # build your project
+    {jfdi} clean   # clean your project
+    {jfdi} run     # run your built project
+
+More help topics:
+
+    {jfdi} help buildvars          
+'''.format(jfdi='%(prog)s'),
+            
+            epilog="%(prog)s <subcommand> --help for detailed help")
+
+        p.add_argument('subcommand', help='Subcommand to run (omit to build)',
                        nargs='?',
                        default='build')
         top_args = p.parse_args(sys.argv[1:2])
@@ -96,6 +108,9 @@ class _ArgDispatch:
         
         return (top_args.subcommand, sub_args, build_vars)
 
+    @staticmethod
+    def _subcommand_prog(sub_name):
+        return "%s %s" % (sys.argv[0], sub_name)
     
     @staticmethod
     def _add_common_args(p):
@@ -123,28 +138,28 @@ class _ArgDispatch:
         and return a dict.
         """
         # unknown arg parse sets variables 
-        # some var facts:
-        #  - case insensitive
-        #  - accessed with var(key, type), where type can be bool, int, str
-        #  - if no equals sign, then default to int(1) for value
         vars = {}
         for v in unknown_args:
             var = v.split('=', 1)
+
+            if len(var[1]) == 0:
+                _fatal_error('"%s": buildvar must have value\n' % v)
             
             # all vars are uppercase
             ukey = var[0].upper()
 
-            if len(var) == 2:
-                vars[ukey] = var[1]
-            else:
-                vars[ukey] = 1
+            if ukey in vars:
+                _fatal_error('"%s": buildvar specified multiple times\n' % v)
+
+            vars[ukey] = var[1]
 
         return vars
         
 
     def subcommand_init(self):
         p = argparse.ArgumentParser(
-            description='init creates a new build.jfdi in the working directory'
+            description='init creates a new build.jfdi in the working directory',
+            prog=self._subcommand_prog('init'),
         )
 
         p = self._add_common_args(p)
@@ -158,7 +173,7 @@ class _ArgDispatch:
        
         p = argparse.ArgumentParser(
             description='clean intermediate and build product files by calling clean() in build.jfdi',
-            # todo: improve usage
+            prog=self._subcommand_prog('clean')
         )
 
         p = self._add_common_args(p)
@@ -172,7 +187,8 @@ class _ArgDispatch:
     def subcommand_build(self):
 
         p = argparse.ArgumentParser(
-            description="build the program by executing build.jfdi"
+            description="build the program by executing build.jfdi",
+            prog=self._subcommand_prog('build'),
         )
 
         p = self._add_common_args(p)
@@ -190,6 +206,7 @@ class _ArgDispatch:
 
         p = argparse.ArgumentParser(
             description="perform a canonical run of the program by calling run() in build.jfdi",
+            prog=self._subcommand_prog('run'),
         )
 
         p = self._add_common_args(p)
@@ -198,6 +215,22 @@ class _ArgDispatch:
         build_vars = self._parse_build_vars(unknown_args)
 
         return sub_args, build_vars
+
+    
+    def subcommand_help(self):
+
+        p = argparse.ArgumentParser(
+            description="additional help topics",
+            prog=self._subcommand_prog('help'),
+        )
+
+        p.add_argument('topic', help='Help topic. Use --help to see topics')
+
+        sub_args = p.parse_args(sys.argv[2:])
+        sub_args.verbose = False
+        
+
+        return sub_args, {}
 
 
 def _which(file):
@@ -298,6 +331,7 @@ def _add_api(g):
     g['arg'] = _api_arg
     g['obj'] = _api_obj
     g['var'] = _api_var
+    g['yes'] = _api_yes
     g['exe'] = _api_exe
     g['exp'] = _api_exp
     g['pth'] = _api_pth
@@ -433,6 +467,39 @@ def _log_stamp():
 
         num = "%.1f" % d_s
         return "[%ss]" % num.rjust(justify_chars)
+
+def _display_help_topic(topic):
+    if topic == 'buildvars':
+        msg='''Build Variables are KEY=value pairs specified on the commandline.
+In a build script, var('KEY') returns the value specified.
+
+Build variables have the following properties:
+
+ REGARDING CASE:
+ - They are case insensitive. var('key') and var('KEY') are the same thing.
+ 
+ REGARDING FALSE/UNDEF IN BUILD SCRIPTS:
+ - var('KEY') returns string, yes('KEY') returns boolean
+ - Boolean KEY=0 on the command line should be evaulated as if yes('KEY')
+
+ REGARDING UNSPECIFIED BUILD VARS:
+ - var('OMITTED') == ''
+ - yes('OMITTED') == False
+
+Example code:
+ if yes('debug'):
+    CFLAGS.append('-g')
+
+Example build command:
+ jfdi DEBUG=1
+'''
+
+    else:
+        _fatal_error("unknown help topic %s.  " % topic +
+                     "Use --help to view all help topics\n")
+
+    print(msg)
+    sys.exit(0)
     
         
 def generate_tmpl(path):
@@ -470,7 +537,8 @@ available functions:
   mkd(str)      - make all subdirs
   obj(str)      - return filename with obj file ext (file.c = file.obj)
   pth(str)      - swap path slashes -- \ on windows, / otherwise
-  var(str,type) - get command line var passed in during build instantiation
+  var(str)      - get buildvar passed in as a string, ie: DEBUG="0"
+  yes(str)      - get buildvar passed in as a boolean, ie: DEBUG=False
 
 variables:
   HOST_OS       - compiling machine OS    (str)
@@ -717,24 +785,30 @@ def _api_obj(path, in_prefix_path=''):
     return _list_single_to_str(out_paths)
     
 
-
-def _api_var(key,type=str):
+def _api_var(key):
     global _cfg
 
     ukey = key.upper()
-    if ukey in _cfg['build_vars']:
-        val = _cfg['build_vars'][ukey]
-
-        # workaround: string 0 would be true
-        if type == bool and val == '0':
-            val = 0
+    if ukey not in _cfg['build_vars']:
+        return ''
         
-        try:
-            tval = type(val)
-        except ValueError:
-            tval = val
-        return tval
-    return ''
+    return _cfg['build_vars'][ukey]
+
+
+def _api_yes(key):
+    global _cfg
+    
+    ukey = key.upper()
+    if ukey not in _cfg['build_vars']:
+        return False
+
+    if _cfg['build_vars'][ukey] == '0':
+        return False
+    
+    # it is not possible to have a build var with a len(0) value so it
+    # is safe to return True now.
+    return True
+    
 
 
 def _api_exe(path, append_if_debug=None):
@@ -815,7 +889,7 @@ def _api_pth(path):
 if __name__ == '__main__':
 
     dispatch = _ArgDispatch()
-    subcommand, args, build_vars = dispatch.exec()
+    subcommand, args, build_vars = dispatch.dispatch()
 
 
     #
@@ -825,6 +899,13 @@ if __name__ == '__main__':
         generate_tmpl(args.file)
         _message(1, 'wrote %s' % args.file)
         _report_success(g_start_time)
+        sys.exit(0)
+
+    #
+    # subcommand help
+    #
+    if subcommand == 'help':
+        _display_help_topic(args.topic)
         sys.exit(0)
     
     # all subcommands not handled yet require execution of the build script.
