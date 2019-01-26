@@ -85,7 +85,15 @@ More help topics:
         p.add_argument('subcommand', help='Subcommand to run (omit to build)',
                        nargs='?',
                        default='build')
-        top_args = p.parse_args(sys.argv[1:2])
+
+        subcommand = sys.argv[1:2]
+
+        # build is implicit subcommand; detect buildvar as first arg
+        # and provide workaround.
+        if len(subcommand) > 0 and '=' in subcommand[0]:
+            subcommand = ['build']
+
+        top_args = p.parse_args(subcommand)
 
         # default to 'build' if no subcommand is specified
         if not hasattr(self, 'subcommand_'+top_args.subcommand):
@@ -196,7 +204,12 @@ More help topics:
         p.add_argument('-r', '--run', help='call run() after successful build',
                        action='store_true')
 
-        sub_args, unknown_args = p.parse_known_args(sys.argv[2:])
+        # work around implicit build subcommand
+        first_arg = 2
+        if len(sys.argv) > 1 and sys.argv[1] != 'build':
+            first_arg = 1
+        
+        sub_args, unknown_args = p.parse_known_args(sys.argv[first_arg:])
         build_vars = self._parse_build_vars(unknown_args)
 
         return sub_args, build_vars
