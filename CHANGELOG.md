@@ -6,6 +6,14 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 All breaking changes are scheduled for major version increases.
 
+## [0.2.0] - January 2019 ##
+### Added ###
+- `yes()` api call returns boolean for build vars
+- extensive built-in documentation revamp
+
+### Changed ###
+- `var()` now always returns string.  See `jfdi help buildvars` for details.
+
 ## [0.1.0] - January 2019 ##
 ### Added ###
 - Added new `jfdi run` command to just call `run()` and exit.
