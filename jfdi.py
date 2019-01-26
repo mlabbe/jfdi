@@ -32,7 +32,7 @@ import argparse
 import platform
 import subprocess
 
-VERSION=(0,1,0)
+VERSION=(0,2,0)
 
 g_start_time = time.time()
 
@@ -93,6 +93,13 @@ More help topics:
         if len(subcommand) > 0 and '=' in subcommand[0]:
             subcommand = ['build']
 
+        # as above, but for actual arguments
+        if len(subcommand) > 0 and subcommand[0][0] == '-':
+            if subcommand[0] != '-h' and subcommand[0] != '--help':
+                subcommand = ['build']
+
+            
+
         top_args = p.parse_args(subcommand)
 
         # default to 'build' if no subcommand is specified
@@ -150,6 +157,11 @@ More help topics:
         for v in unknown_args:
             var = v.split('=', 1)
 
+            # if no equals sign exists in the unknown argument, the argument
+            # is not a buildvar and is truly unknown
+            if len(var) == 1:
+                _fatal_error('"%s": unknown argument\n'% v)
+            
             if len(var[1]) == 0:
                 _fatal_error('"%s": buildvar must have value\n' % v)
             
@@ -203,12 +215,14 @@ More help topics:
         
         p.add_argument('-r', '--run', help='call run() after successful build',
                        action='store_true')
+        p.add_argument('--version', help='print version and exit',
+                       action='store_true')
 
         # work around implicit build subcommand
         first_arg = 2
         if len(sys.argv) > 1 and sys.argv[1] != 'build':
             first_arg = 1
-        
+
         sub_args, unknown_args = p.parse_known_args(sys.argv[first_arg:])
         build_vars = self._parse_build_vars(unknown_args)
 
@@ -305,7 +319,7 @@ def _get_script(args_file):
     if args_file != None:
         script_path = args_file
 
-    if script_path == None:
+    if script_path == None or not os.path.exists(script_path):
         fatal_msg =  "Build file not found\n"
         fatal_msg += "\nIf this is your first run, use %s --init\n" \
                      % sys.argv[0]
@@ -941,6 +955,10 @@ if __name__ == '__main__':
         #
         # subcommand build (default)
         #
+        if args.version:
+            print(_pp_version())
+            sys.exit(0)
+        
         _build(context, args.target_os)
         if args.run:
             _canonical_run(context)
