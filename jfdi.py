@@ -545,7 +545,7 @@ def generate_tmpl(path):
 #
 # NOTE:
 # if you do not have jfdi.py, run this script with python to get it.
-# or clone https://github.com/mlabbe/jfdi
+# or, git clone https://github.com/mlabbe/jfdi
 \"""
 jfdi build script
 
@@ -603,11 +603,11 @@ def build_this(in_path):
 def end_build(in_files):
     pass
 
-# called when the user requests --clean
+# called when the user runs 'jfdi clean'
 def clean(in_files):
     pass
 
-# called when the user requests a canonical run on successful build (optional)
+# called when the user runs 'jfdi run'
 def run():
     pass
     
@@ -658,7 +658,6 @@ def _api_raw(x):
 def _api_log(msg):
     frame = sys._getframe(1)
     func_name = frame.f_code.co_name
-    
     
     print("%s %s(): %s" % (_log_stamp(), func_name, msg))
 
@@ -893,7 +892,6 @@ def _api_exp(in_str):
                 elif var in globals():
                     val = globals()[var]
                 else:
-                    
                     _fatal_error("exp(): var %s not found.\n" % var)
                     
             if val.__class__ == list:

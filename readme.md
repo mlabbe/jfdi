@@ -94,7 +94,7 @@ def end_build(in_files):
     cmd(exp("$LD $LDFLAGS $objs -o bin/hello"))
 
 
-# called when the user uses jfdi -c
+# called when the user uses jfdi clean
 def clean(in_files):
     # rm deletes a directory or file
     rm("bin")
@@ -120,9 +120,9 @@ See [examples](examples/) for more use cases.
 
 ### Extended Usage ###
 
-    jfdi DEBUG=1          # pass build variable DEBUG to build script, var('DEBUG') returns 1
-    jfdi -c               # call build.jfdi clean() which cleans up the build
-    jfdi -r               # build normally, then call run(), which performs a canonical run
+    jfdi DEBUG=1          # pass build variable DEBUG to build script, yes('DEBUG') returns True
+    jfdi clean DEBUG=1    # call build.jfdi clean() which cleans up the build
+    jfdi run              # build normally, then call run(), which performs a canonical run
                           # of the build product
 
 See also: [examples](examples/)
