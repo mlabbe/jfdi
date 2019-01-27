@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 All breaking changes are scheduled for major version increases.
 
+## [0.2.1] - January 2019 ##
+*Alpha release candidate 1*
+
 ## [0.2.0] - January 2019 ##
 ### Added ###
 - `yes()` api call returns boolean for build vars

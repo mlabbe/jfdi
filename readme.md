@@ -39,7 +39,7 @@ See "Why JFDI?" below for a comparison with alternatives.
 
 ## Installation ##
 
-*Windows*: Download a standalone exe from the Github releases tab and unzip it to your `PATH`.  Alternatively, run `python jfdi.py <args>` with your preinstalled Python 3 interpreter.
+*Windows*: Download a standalone exe from the Github [releases tab](https://github.com/mlabbe/jfdi/releases) and unzip it to your `PATH`.  Alternatively, run `python jfdi.py <args>` with your preinstalled Python 3 interpreter.
 
 *Linux and Mac*:
 

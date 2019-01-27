@@ -32,7 +32,7 @@ import argparse
 import platform
 import subprocess
 
-VERSION=(0,2,0)
+VERSION=(0,2,1)
 
 g_start_time = time.time()
 
