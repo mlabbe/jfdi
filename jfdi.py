@@ -268,8 +268,9 @@ def _pp_version():
     """pretty print version as a string"""
     return '.'.join(str(i) for i in VERSION)
 
-def _clean(context):
-    _message(1, "cleaning")    
+def _clean(context, target_os):
+    globals()['TARGET_OS'] = target_os
+    _message(1, "cleaning")
     input_files = context[0]['list_input_files']()
     input_files = _handle_input_files(input_files)
     
@@ -363,7 +364,8 @@ def _add_api(g):
     g['raw'] = _api_raw
     return g
 
-def _run_script(pycode):
+def _run_script(pycode, target_os):
+    globals()['TARGET_OS'] = target_os    
     g = _add_api(globals())
 
     push_name = globals()['__name__']
@@ -836,7 +838,6 @@ def _api_yes(key):
     return True
     
 
-
 def _api_exe(path, append_if_debug=None):
     split = os.path.splitext(path)
 
@@ -943,19 +944,19 @@ if __name__ == '__main__':
         
     # all subcommands not handled yet require execution of the build script.
     pycode = _get_script(args.file)
-    context = _run_script(pycode)
+    context = _run_script(pycode, args.target_os)
 
     if subcommand == 'clean':
         #
         # subcommand clean
         #
-        _clean(context)
+        _clean(context, args.target_os)
 
     elif subcommand == 'run':
         #
         # subcommand run
         #
-        _canonical_run(context)
+        _canonical_run(context, args.target_os)
 
     else:
         #
