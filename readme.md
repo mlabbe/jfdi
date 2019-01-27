@@ -33,7 +33,7 @@ See "Why JFDI?" below for a comparison with alternatives.
 - First class support for non-compiler building (LaTeX, shaders, etc.)
 - Build system will always be one small Python file with no third party dependencies.
 - Provides a small API to simplify build tasks; much less typing than stock Python libraries
-- Generate a self-documented build template to get started with `--init`
+- Generate a self-documented build template to get started with `init`
 - Automatically swaps dir slashes for easy x-platform scripting
 - Used by the author for a handful of small projects for three years and counting
 
@@ -54,7 +54,7 @@ JFDI has zero third party Python dependencies and is a single file standalone pr
 This builds a multi-file C project with clang, putting build products in a `bin/` subdirectory.
 
     # generate template build file build.jfdi
-    jfdi.py --init
+    jfdi init
 
 ```Python
 # build.jfdi
@@ -100,30 +100,30 @@ def clean(in_files):
     rm("bin")
 ```
 
-    jfdi.py      # builds build.jfdi
+    jfdi        # builds build.jfdi
 
 See [examples](examples/) for more use cases.
 
 
 ## Documentation ##
 
-1. `jfdi --init` creates a build file which contains documentation in comments.
+1. `jfdi init` creates a build file which contains documentation in comments.
 2. See [examples](examples/) for specific usage examples.
 3. Questions or suggestions? Post an issue on the official Github repo.
 4. Read the code to `jfdi.py`'s \_api\_* functions.  It is not deeply nested and easy to read. Try it out!
 
 ## Usage ##
 
-    jfdi.py --init           # create build.jfdi in cwd
-    emacs build.jfdi         # edit self-documenting build script
-    jfdi.py                  # run build.jfdi in cwd, building your program
+    jfdi init             # create build.jfdi in cwd
+    emacs build.jfdi      # edit self-documenting build script
+    jfdi                  # run build.jfdi in cwd, building your program
 
 ### Extended Usage ###
 
-    jfdi.py DEBUG=1          # pass build variable DEBUG to build script, var('DEBUG') returns 1
-    jfdi.py -c               # call build.jfdi clean() which cleans up the build
-    jfdi.py -r               # build normally, then call run(), which performs a canonical run
-                             # of the build product
+    jfdi DEBUG=1          # pass build variable DEBUG to build script, var('DEBUG') returns 1
+    jfdi -c               # call build.jfdi clean() which cleans up the build
+    jfdi -r               # build normally, then call run(), which performs a canonical run
+                          # of the build product
 
 See also: [examples](examples/)
 

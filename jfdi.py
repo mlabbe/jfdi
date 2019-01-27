@@ -321,7 +321,7 @@ def _get_script(args_file):
 
     if script_path == None or not os.path.exists(script_path):
         fatal_msg =  "Build file not found\n"
-        fatal_msg += "\nIf this is your first run, use %s --init\n" \
+        fatal_msg += "\nIf this is your first run, use %s init\n" \
                      % sys.argv[0]
         fatal_msg += "%s --help for detailed help.\n\n" \
                      % sys.argv[0]
