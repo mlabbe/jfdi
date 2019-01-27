@@ -98,8 +98,6 @@ More help topics:
             if subcommand[0] != '-h' and subcommand[0] != '--help':
                 subcommand = ['build']
 
-            
-
         top_args = p.parse_args(subcommand)
 
         # default to 'build' if no subcommand is specified
@@ -935,7 +933,14 @@ if __name__ == '__main__':
     if subcommand == 'help':
         _display_help_topic(args.topic)
         sys.exit(0)
-    
+
+    #
+    # subcommand build, version case 
+    # 
+    if subcommand == 'build' and args.version:
+        print(_pp_version())
+        sys.exit(0)
+        
     # all subcommands not handled yet require execution of the build script.
     pycode = _get_script(args.file)
     context = _run_script(pycode)
@@ -956,10 +961,6 @@ if __name__ == '__main__':
         #
         # subcommand build (default)
         #
-        if args.version:
-            print(_pp_version())
-            sys.exit(0)
-        
         _build(context, args.target_os)
         if args.run:
             _canonical_run(context)
