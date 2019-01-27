@@ -33,7 +33,7 @@ def start_build():
     #
     # We check if jfdi.py DEBUG=1 was passed in and use different
     # compile flags.
-    if var('DEBUG', bool):
+    if yes('DEBUG'):
         if CCTYPE == 'msvc':
             CFLAGS.append('/Od')
             CFLAGS.append('/Zi')
@@ -95,7 +95,7 @@ def end_build(in_files):
     # In DEBUG=1 on windows, it will be hello_d.exe 
     # In DEBUG=0 on windows, it will be hello.exe
     # In DEBUG=1 on any other platform, it will be hello_d
-    # In DEBUG=0 on any other platform, it will be hell
+    # In DEBUG=0 on any other platform, it will be hello
     out_exe_path = exe(cfg['i'] + 'hello.exe', '_d')
 
     if CCTYPE == 'msvc':

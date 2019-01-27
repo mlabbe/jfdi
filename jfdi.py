@@ -513,12 +513,13 @@ Build variables have the following properties:
  - var('OMITTED') == ''
  - yes('OMITTED') == False
 
-Example code:
+Example buildvar usage:
+ jfdi DEBUG=1
+
+Corresponding buildvar code:
  if yes('debug'):
     CFLAGS.append('-g')
 
-Example build command:
- jfdi DEBUG=1
 '''
 
     else:
@@ -846,7 +847,7 @@ def _api_exe(path, append_if_debug=None):
         exe = '.exe'
 
     base_str = str(split[0])
-    if append_if_debug != None and _api_var('DEBUG', bool):
+    if append_if_debug != None and _api_yes('DEBUG'):
         base_str += append_if_debug
 
     return base_str + exe
