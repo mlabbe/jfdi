@@ -73,7 +73,7 @@ def get_archive_name():
     # get version from script
     version = cmd(['python', '../jfdi.py', '--version']).rstrip()
     
-    return "jfdi-%s-%s.zip" % (version, get_archstr())    
+    return "jfdi-%s-win32-%s.zip" % (version, get_archstr())    
 
 # called at the start of the build
 def start_build():

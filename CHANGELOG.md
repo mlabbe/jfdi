@@ -6,6 +6,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 All breaking changes are scheduled for major version increases.
 
+## [1.0.0] - January 2019 ##
+
+Version was changed to 1.0.0 after successful release candidate period.
+
 ## [0.2.1] - January 2019 ##
 *Alpha release candidate 1*
 
