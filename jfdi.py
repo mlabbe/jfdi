@@ -32,7 +32,7 @@ import argparse
 import platform
 import subprocess
 
-VERSION=(1,0,0)
+VERSION=(1,0,1)
 
 g_start_time = time.time()
 
@@ -441,12 +441,13 @@ def _build(context, target_os):
     context[0]['end_build'](input_files)
 
     
-def _canonical_run(context):
+def _canonical_run(context, target_os):
     # not an error to have this omitted in the build script; run() is optional
     if 'run' not in context[0]:
         return
 
     _message(1, "performing a canonical run of the build product")
+    globals()['TARGET_OS'] = target_os    
     context[0]['run']()
 
 def _run_cmd(cmd):
