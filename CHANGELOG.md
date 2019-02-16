@@ -6,12 +6,15 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 All breaking changes are scheduled for major version increases.
 
+## [1.0.2] - February 2019 ##
+
+### Fixed ###
+- Fixed error on `jfdi -r`
+
 ## [1.0.1] - February 2019 ##
 
 ### Fixed ###
 - Fixed error on `jfdi run`
-
-
 
 ## [1.0.0] - January 2019 ##
 

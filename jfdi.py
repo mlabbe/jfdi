@@ -32,7 +32,7 @@ import argparse
 import platform
 import subprocess
 
-VERSION=(1,0,1)
+VERSION=(1,0,2)
 
 g_start_time = time.time()
 
@@ -963,7 +963,7 @@ if __name__ == '__main__':
         #
         _build(context, args.target_os)
         if args.run:
-            _canonical_run(context)
+            _canonical_run(context, args.target_os)
 
     _report_success(g_start_time)
     sys.exit(0)
