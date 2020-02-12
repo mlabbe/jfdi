@@ -338,11 +338,11 @@ def _get_script(args_file):
     return pycode
 
 def _swap_slashes(dir):
-    if platform.system() == 'Darwin' or platform.system() == 'Linux':
-        return dir.replace('\\', '/')
-
     if platform.system() == 'Windows':
         return dir.replace('/', '\\')
+    else:
+        return dir.replace('\\', '/')
+
 
 def _add_api(g):
     g['ext'] = _api_ext
