@@ -8,8 +8,9 @@ All breaking changes are scheduled for major version increases.
 
 ## [1.0.3] - February 2020 ##
 
-### FIxed ###
+### Fixed ###
 - `pth()` no longer returns `None` on BSDs
+- `use()` now overrides from environment
 
 ## [1.0.2] - February 2019 ##
 

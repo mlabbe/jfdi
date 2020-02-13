@@ -762,6 +762,11 @@ def _api_use(id):
         msg += "\tmsvc, clang, gcc\n"
         _fatal_error(msg)
 
+    # override from environment
+    for potential_env in v:
+        if potential_env in os.environ:
+            v[potential_env] = os.environ[potential_env]
+
     if _which(v['CC']) == None:
         _warning("use(): compiler '%s' not found in search path.\n" % v['CC'])
 
