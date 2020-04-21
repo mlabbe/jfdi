@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # JFDI is
-# Copyright (C) 2016-2019 Frogtoss Games, Inc.
+# Copyright (C) 2016-2020 Frogtoss Games, Inc.
 #
 # Author Michael Labbe
 # See LICENSE in this repo for license terms
@@ -32,7 +32,7 @@ import argparse
 import platform
 import subprocess
 
-VERSION=(1,0,2)
+VERSION=(1,0,4)
 
 g_start_time = time.time()
 
@@ -445,6 +445,9 @@ def _canonical_run(context, target_os):
     # not an error to have this omitted in the build script; run() is optional
     if 'run' not in context[0]:
         return
+
+    globals()['HOST_OS'] = platform.system()
+    globals()['TARGET_OS'] = target_os
 
     _message(1, "performing a canonical run of the build product")
     globals()['TARGET_OS'] = target_os    
