@@ -185,7 +185,7 @@ This software has been in use for three years on the author's small projects.  T
 
 # Copyright and Credit #
 
-Copyright &copy; 2016-2019 Frogtoss Games, Inc.  File [LICENSE](LICENSE) covers all files in this repo.
+Copyright &copy; 2016-2021 Frogtoss Games, Inc.  File [LICENSE](LICENSE) covers all files in this repo.
 
 JFDI by Michael Labbe. <contact@frogtoss.com>
 

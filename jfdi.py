@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # JFDI is
-# Copyright (C) 2016-2020 Frogtoss Games, Inc.
+# Copyright (C) 2016-2021 Frogtoss Games, Inc.
 #
 # Author Michael Labbe
 # See LICENSE in this repo for license terms
@@ -32,7 +32,7 @@ import argparse
 import platform
 import subprocess
 
-VERSION=(1,0,4)
+VERSION=(1,0,5)
 
 g_start_time = time.time()
 
@@ -686,7 +686,9 @@ def _api_cmd(cmd):
         _warning(err.decode('utf-8'))
 
     if ret != 0:
-        _fatal_error("\nerror code %d running \"%s\"\n" % (ret, cmd),
+        print(out.rstrip().decode('utf-8'), file=sys.stdout)
+        print(err.rstrip().decode('utf-8'), file=sys.stderr)
+        _fatal_error("\nerror code %d running \"%s\"\n" % (ret, ' ' .join(cmd)),
                      error_code=ret)
 
     return out.rstrip().decode('utf-8')

@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 All breaking changes are scheduled for major version increases.
 
+## [1.0.5] - October 2021##
+- `cmd()` now outputs stdout and stderr on failure
+
 ## [1.0.4] - April 2020 ##
  - bugfix: `HOST_OS` and `TARGET_OS` are now available in `run()`.
 
