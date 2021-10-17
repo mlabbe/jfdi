@@ -32,7 +32,7 @@ import argparse
 import platform
 import subprocess
 
-VERSION=(1,0,5)
+VERSION=(1,0,6)
 
 g_start_time = time.time()
 
@@ -672,11 +672,13 @@ def _api_mkd(dirs):
 
 def _api_cmd(cmd):
     if cmd.__class__ == list:
-        _message(0, ' '.join(cmd))
+        cmd_str = ' '.join(cmd)
     else:
-        _message(0, cmd)
+        cmd_str = cmd
 
-    proc = subprocess.Popen(cmd, shell=True,
+    _message(0, cmd_str)
+
+    proc = subprocess.Popen(cmd_str, shell=True,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE)
     out, err = proc.communicate()
@@ -688,7 +690,7 @@ def _api_cmd(cmd):
     if ret != 0:
         print(out.rstrip().decode('utf-8'), file=sys.stdout)
         print(err.rstrip().decode('utf-8'), file=sys.stderr)
-        _fatal_error("\nerror code %d running \"%s\"\n" % (ret, ' ' .join(cmd)),
+        _fatal_error("\nerror code %d running \"%s\"\n" % (ret, cmd_str),
                      error_code=ret)
 
     return out.rstrip().decode('utf-8')
