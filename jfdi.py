@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # JFDI is
-# Copyright (C) 2016-2021 Frogtoss Games, Inc.
+# Copyright (C) 2016-2021, 2024 Frogtoss Games, Inc.
 #
 # Author Michael Labbe
 # See LICENSE in this repo for license terms
@@ -32,7 +32,7 @@ import argparse
 import platform
 import subprocess
 
-VERSION=(1,0,6)
+VERSION=(1,0,7)
 
 g_start_time = time.time()
 
@@ -259,8 +259,9 @@ More help topics:
 
 
 def _which(file):
+    file_exe = _api_exe(file, None)
     for path in os.environ["PATH"].split(os.pathsep):
-        if os.path.exists(os.path.join(path, file)):
+        if os.path.exists(os.path.join(path, file_exe)):
             return os.path.join(path, file)
     return None
 

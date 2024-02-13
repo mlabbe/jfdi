@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 All breaking changes are scheduled for major version increases.
 
+## [1.0.7] - February 2024 ##
+- `use("clang")` on Windows no longer incorrectly prints warnings
+
 ## [1.0.6] - October 2021 ##
 - `cmd()` now converts python lists into string before calling subprocess
 
