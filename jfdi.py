@@ -32,7 +32,7 @@ import argparse
 import platform
 import subprocess
 
-VERSION=(1,0,7)
+VERSION=(1,1)
 
 g_start_time = time.time()
 
@@ -360,6 +360,7 @@ def _add_api(g):
     g['var'] = _api_var
     g['yes'] = _api_yes
     g['exe'] = _api_exe
+    g['dll'] = _api_dll
     g['exp'] = _api_exp
     g['pth'] = _api_pth
     g['raw'] = _api_raw
@@ -563,6 +564,7 @@ available functions:
   die(str)      - fail build with a message, errorlevel 3
   env(str)      - return environment variable or None
   exe(str)      - return filename with exe extension based on TARGET_OS
+  dll(str)      - return filename with dll extension (eg: .so, .dll, .dylib)
   exp(str)      - expand a $string, searching CLI --vars and then global scope
   ext(str)      - return file extension         (file.c = .c)
   raw(str)      - return file without extension (file.c = file)
@@ -863,6 +865,22 @@ def _api_exe(path, append_if_debug=None):
         base_str += append_if_debug
 
     return base_str + exe
+
+def _api_dll(path, append_if_debug=None):
+    split = os.path.splitext(path)
+
+    dll = '.so'
+    if globals()['TARGET_OS'] == 'Windows':
+        dll = '.dll'
+    elif globals()['TARGET_OS'] == 'Darwin':
+        dll = '.dylib'
+
+    base_str = str(split[0])
+    if append_if_debug != None and _api_yes('DEBUG'):
+        base_str += append_if_debug
+
+    return base_str + dll
+
 
 def _api_exp(in_str):
     _message(1, "expanding \"%s\"" % in_str)
